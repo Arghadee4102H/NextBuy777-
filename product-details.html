@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details — NextBuy 77</title>
+  <meta name="description" content="View product specifications, pricing, reviews, and purchase options on NextBuy 77.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="header-search">
+        <form class="header-search-form" action="products.html" method="GET">
+          <input type="text" name="q" class="search-input" placeholder="Search fashion, jewellery, perfumes..." data-i18n-placeholder="nav.searchPlaceholder" aria-label="Search products">
+          <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
+        </form>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
+        <a href="profile.html" class="action-btn" id="user-nav-btn">
+          <span>👤</span>
+          <span data-i18n="nav.login">Sign In</span>
+        </a>
+        <a href="cart.html" class="action-btn" style="background-color: var(--color-bg-subtle);">
+          <span>🛒</span>
+          <span data-i18n="nav.cart">Cart</span>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main container" style="margin-top: var(--space-8);">
+    <div id="product-details-container" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-sm);">
+      <!-- Dynamic product details or placeholder layout -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-8);">
+        <!-- Image Gallery Area -->
+        <div>
+          <div id="main-image-wrap" style="width: 100%; aspect-ratio: 1/1; background: var(--color-bg-subtle); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border);">
+            <div id="placeholder-gallery" style="text-align: center; color: var(--color-text-light);">
+              <span style="font-size: 4rem;">🛍️</span>
+              <p style="font-weight: 600; margin-top: 8px;" data-i18n="home.productPlaceholderTitle">Product</p>
+            </div>
+            <img id="main-product-img" src="" alt="Product" style="display:none; width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div id="gallery-thumbs" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto;"></div>
+        </div>
+
+        <!-- Product Info Area -->
+        <div style="display: flex; flex-direction: column;">
+          <span id="product-category-label" style="text-transform: uppercase; font-size: 13px; color: var(--color-accent); font-weight: 600; letter-spacing: 0.5px;" data-i18n="home.productPlaceholderCategory">Category</span>
+          <h1 id="product-title" style="margin-top: 6px; margin-bottom: 12px;" data-i18n="home.productPlaceholderTitle">Product</h1>
+          
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;">
+            <span id="product-price" style="font-size: 2rem; font-weight: 700; color: var(--color-primary);" data-i18n="home.productPlaceholderPrice">₹0.00</span>
+            <span id="product-orig-price" style="text-decoration: line-through; color: var(--color-text-light); display: none;"></span>
+            <span id="product-discount-tag" class="product-discount-badge" style="display: none;"></span>
+          </div>
+
+          <!-- Stock Availability -->
+          <div style="margin-bottom: 16px;">
+            <span id="product-stock-badge" style="display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; background: var(--color-success-bg); color: var(--color-success);">
+              In Stock
+            </span>
+          </div>
+
+          <!-- Quantity Selector -->
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+            <label for="qty-input" style="font-weight: 600; font-size: 14px;" data-i18n="product.quantity">Quantity:</label>
+            <input type="number" id="qty-input" min="1" max="10" value="1" style="width: 70px; padding: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 15px; text-align: center;">
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+            <button id="add-to-cart-btn" class="btn btn-primary" style="flex: 1; min-width: 160px;" data-i18n="home.addToCart">
+              Add to Cart
+            </button>
+            <button id="buy-now-btn" class="btn btn-accent" style="flex: 1; min-width: 160px;" data-i18n="home.buyNow">
+              Buy Now
+            </button>
+          </div>
+
+          <!-- Description -->
+          <div style="border-top: 1px solid var(--color-border); padding-top: 16px;">
+            <h3 style="font-size: 16px; margin-bottom: 8px;" data-i18n="product.description">Description</h3>
+            <p id="product-description" style="color: var(--color-text-muted); font-size: 14px; line-height: 1.6;">
+              Product details, specifications, and descriptions are managed dynamically via the Admin Panel.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3 class="footer-brand-title">NextBuy 77</h3>
+          <p class="footer-brand-tagline" data-i18n="brand.tagline">Buy Next. Buy Better.</p>
+          <p style="font-size: 14px; opacity: 0.85;" data-i18n="footer.aboutText">
+            NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.quickLinks">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+            <li><a href="products.html" data-i18n="nav.products">Products</a></li>
+            <li><a href="cart.html" data-i18n="nav.cart">Cart</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.legal">Legal</h4>
+          <ul class="footer-links">
+            <li><a href="terms.html" data-i18n="footer.terms">Terms & Conditions</a></li>
+            <li><a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title">Official Contact</h4>
+          <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
+          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { cartManager } from './js/cart.js';
+    import { db, auth } from './js/firebase-config.js';
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { formatCurrency, showToast } from './js/utils.js';
+
+    let currentProduct = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+      securityDeterrents.init();
+
+      const langSelect = document.getElementById('lang-select');
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => i18n.setLanguage(e.target.value));
+      }
+
+      cartManager.updateCartBadge();
+
+      // Check URL query parameters for product ID
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get('id');
+
+      if (productId) {
+        try {
+          const docRef = doc(db, 'products', productId);
+          const snap = await getDoc(docRef);
+          if (snap.exists()) {
+            currentProduct = { id: snap.id, ...snap.data() };
+            populateProductData(currentProduct);
+          }
+        } catch (err) {
+          console.warn('Could not load specific product. Displaying placeholder details.', err);
+        }
+      }
+
+      // Add to Cart Event
+      document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+        const qty = parseInt(document.getElementById('qty-input').value, 10) || 1;
+        if (currentProduct) {
+          cartManager.addItem(currentProduct, qty);
+        } else {
+          // Placeholder product
+          cartManager.addItem({ id: 'sample_placeholder', name: { en: 'Product' }, pricePaise: 0 }, qty);
+        }
+      });
+
+      // Buy Now Event
+      document.getElementById('buy-now-btn').addEventListener('click', () => {
+        const qty = parseInt(document.getElementById('qty-input').value, 10) || 1;
+        if (currentProduct) {
+          cartManager.addItem(currentProduct, qty);
+        } else {
+          cartManager.addItem({ id: 'sample_placeholder', name: { en: 'Product' }, pricePaise: 0 }, qty);
+        }
+        window.location.href = 'checkout.html';
+      });
+
+      onAuthStateChanged(auth, (user) => {
+        const userBtn = document.getElementById('user-nav-btn');
+        if (userBtn) {
+          if (user) {
+            userBtn.innerHTML = `<span>👤</span> <span>${user.displayName ? user.displayName.split(' ')[0] : 'Profile'}</span>`;
+            userBtn.href = 'profile.html';
+          } else {
+            userBtn.innerHTML = `<span>👤</span> <span data-i18n="nav.login">${i18n.t('nav.login')}</span>`;
+            userBtn.href = 'login.html';
+          }
+        }
+      });
+    });
+
+    function populateProductData(prod) {
+      const name = (prod.name && (prod.name[i18n.currentLanguage] || prod.name['en'])) || 'Product';
+      document.getElementById('product-title').textContent = name;
+      document.title = `${name} — NextBuy 77`;
+
+      const price = prod.pricePaise ? formatCurrency(prod.pricePaise) : (prod.price ? `₹${prod.price}` : '₹0.00');
+      document.getElementById('product-price').textContent = price;
+
+      if (prod.images && prod.images.length > 0) {
+        const mainImg = document.getElementById('main-product-img');
+        mainImg.src = prod.images[0];
+        mainImg.style.display = 'block';
+        document.getElementById('placeholder-gallery').style.display = 'none';
+      }
+
+      if (prod.description) {
+        const desc = (typeof prod.description === 'object') ? (prod.description[i18n.currentLanguage] || prod.description['en']) : prod.description;
+        document.getElementById('product-description').textContent = desc;
+      }
+    }
+  </script>
+</body>
+</html>
+

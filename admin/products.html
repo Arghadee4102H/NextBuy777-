@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Management — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html" class="active">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Product Catalog Management</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Manage products, pricing, stock, and variants</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="card-header-row">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">All Products</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Real-time inventory and catalog</span>
+          </div>
+          <button id="add-product-btn" class="btn btn-primary btn-sm">+ Add New Product</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Image</th>
+                <th>Name & SKU</th>
+                <th>Category</th>
+                <th>Price (INR)</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  Loading product catalog...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Product Modal -->
+  <div id="product-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+        <h2 id="modal-title" style="font-size: 20px; margin: 0;">Add New Product</h2>
+        <button id="close-modal-btn" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="product-form">
+        <!-- Multilingual Names -->
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Product Name (English) *</label>
+          <input type="text" id="prod-name-en" required class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (বাংলা Bengali)</label>
+            <input type="text" id="prod-name-bn" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (हिन्दी Hindi)</label>
+            <input type="text" id="prod-name-hi" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+        </div>
+
+        <!-- Category & SKU -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <label style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Category *</label>
+              <a href="categories.html" target="_blank" style="font-size: 11px;">+ New Category</a>
+            </div>
+            <select id="prod-category" required class="lang-selector-select" style="width: 100%; padding: 10px; border-radius: var(--radius-md);">
+              <option value="">Select Category</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">SKU (Unique)</label>
+            <input type="text" id="prod-sku" class="search-input" style="border-radius: var(--radius-md);" placeholder="AUTO-GENERATED">
+          </div>
+        </div>
+
+        <!-- Pricing & Stock -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Selling Price (₹) *</label>
+            <input type="number" id="prod-price" step="0.01" min="0" required class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Original MRP (₹)</label>
+            <input type="number" id="prod-orig-price" step="0.01" min="0" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Available Stock *</label>
+            <input type="number" id="prod-stock" min="0" required class="search-input" style="border-radius: var(--radius-md);" value="10">
+          </div>
+        </div>
+
+        <!-- Primary Image URL -->
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Image URL (HTTPS or /assets/images/...)</label>
+          <input type="url" id="prod-image-url" class="search-input" style="border-radius: var(--radius-md);" placeholder="https://... or upload">
+        </div>
+
+        <!-- Description (English) -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Description (English)</label>
+          <textarea id="prod-desc-en" rows="3" class="search-input" style="border-radius: var(--radius-md); resize: vertical;"></textarea>
+        </div>
+
+        <!-- Flags -->
+        <div style="display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap;">
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="prod-published" checked> Published in Store
+          </label>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="prod-featured"> Featured Product
+          </label>
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="prod-new"> New Arrival
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { productManager } from './js/product-management.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+      await productManager.init();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', async () => {
+        await adminAuth.logout();
+      });
+
+      document.getElementById('add-product-btn').addEventListener('click', () => {
+        productManager.openEditModal();
+      });
+
+      document.getElementById('close-modal-btn').addEventListener('click', () => {
+        productManager.closeModal();
+      });
+
+      document.getElementById('cancel-modal-btn').addEventListener('click', () => {
+        productManager.closeModal();
+      });
+
+      document.getElementById('product-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const catSelect = document.getElementById('prod-category');
+        const selectedCatName = catSelect.options[catSelect.selectedIndex]?.text || '';
+        const imgUrl = document.getElementById('prod-image-url').value.trim();
+
+        const formData = {
+          nameEn: document.getElementById('prod-name-en').value,
+          nameBn: document.getElementById('prod-name-bn').value,
+          nameHi: document.getElementById('prod-name-hi').value,
+          categoryId: catSelect.value,
+          categoryName: selectedCatName,
+          sku: document.getElementById('prod-sku').value,
+          priceRupees: document.getElementById('prod-price').value,
+          origPriceRupees: document.getElementById('prod-orig-price').value,
+          stock: document.getElementById('prod-stock').value,
+          images: imgUrl ? [imgUrl] : ['/assets/images/logo.jpeg'],
+          descEn: document.getElementById('prod-desc-en').value,
+          published: document.getElementById('prod-published').checked,
+          featured: document.getElementById('prod-featured').checked,
+          newArrival: document.getElementById('prod-new').checked
+        };
+
+        await productManager.saveProduct(formData);
+      });
+    });
+  </script>
+</body>
+</html>
+

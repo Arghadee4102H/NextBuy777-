@@ -1,0 +1,191 @@
+// Checkout Controller & Order Creation - NextBuy 77
+import { db, auth } from './firebase-config.js';
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  addDoc, 
+  setDoc, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { cartManager } from './cart.js';
+import { calculateOrderTotals, checkPinServiceability, generateIdempotencyKey } from './pricing-engine.js';
+import { formatCurrency, showToast, validatePinCode, validateIndianMobile } from './utils.js';
+import { i18n } from './i18n.js';
+
+class CheckoutController {
+  constructor() {
+    this.currentUser = null;
+    this.savedAddresses = [];
+    this.selectedAddress = null;
+    this.pinServiceability = { serviceable: false, pinData: null };
+    this.orderCalculation = null;
+    this.idempotencyKey = generateIdempotencyKey();
+  }
+
+  async init(user) {
+    this.currentUser = user;
+    await this.loadAddresses();
+    this.recalculateCheckout();
+  }
+
+  async loadAddresses() {
+    if (!this.currentUser) return;
+    try {
+      const addrRef = collection(db, 'users', this.currentUser.uid, 'addresses');
+      const snap = await getDocs(addrRef);
+      this.savedAddresses = [];
+      snap.forEach(d => this.savedAddresses.push({ id: d.id, ...d.data() }));
+
+      this.renderAddressSelector();
+      if (this.savedAddresses.length > 0) {
+        await this.selectAddress(this.savedAddresses[0]);
+      }
+    } catch (err) {
+      console.error('Error loading addresses for checkout', err);
+    }
+  }
+
+  renderAddressSelector() {
+    const container = document.getElementById('checkout-addresses-list');
+    if (!container) return;
+
+    if (this.savedAddresses.length === 0) {
+      container.innerHTML = `
+        <div style="padding: 16px; border: 1px dashed var(--color-border); border-radius: var(--radius-md); font-size: 14px; color: var(--color-text-muted);">
+          No saved addresses. Please enter a delivery address below.
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+    this.savedAddresses.forEach((addr, idx) => {
+      const isSelected = this.selectedAddress && this.selectedAddress.id === addr.id;
+      html += `
+        <label style="display: flex; gap: 12px; padding: 12px; border: 1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}; border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; background: ${isSelected ? 'var(--color-bg-subtle)' : 'var(--color-bg-surface)'};">
+          <input type="radio" name="selected_address" value="${addr.id}" ${isSelected ? 'checked' : ''} style="margin-top: 4px;">
+          <div style="font-size: 13px;">
+            <strong>${addr.fullName}</strong> (${addr.mobile})<br>
+            ${addr.houseBuilding}, ${addr.streetLocality}, ${addr.cityVillage}, ${addr.district}, ${addr.state} - <strong>${addr.pinCode}</strong>
+          </div>
+        </label>
+      `;
+    });
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('input[name="selected_address"]').forEach(input => {
+      input.addEventListener('change', async (e) => {
+        const found = this.savedAddresses.find(a => a.id === e.target.value);
+        if (found) await this.selectAddress(found);
+      });
+    });
+  }
+
+  async selectAddress(address) {
+    this.selectedAddress = address;
+    const pinCheck = await checkPinServiceability(address.pinCode);
+    this.pinServiceability = pinCheck;
+
+    const alertEl = document.getElementById('pin-availability-alert');
+    if (alertEl) {
+      if (!pinCheck.serviceable) {
+        // Section 11: Display exact text "Currently Not Available in Your PIN Code."
+        alertEl.style.display = 'block';
+        alertEl.className = 'toast toast-danger';
+        alertEl.textContent = i18n.t('checkout.pinUnavailable') || 'Currently Not Available in Your PIN Code.';
+        document.getElementById('place-order-btn').disabled = true;
+      } else {
+        alertEl.style.display = 'none';
+        document.getElementById('place-order-btn').disabled = false;
+      }
+    }
+
+    this.recalculateCheckout();
+  }
+
+  recalculateCheckout() {
+    const items = cartManager.getItems();
+    this.orderCalculation = calculateOrderTotals({
+      items,
+      pinData: this.pinServiceability.pinData
+    });
+
+    this.renderOrderSummary();
+  }
+
+  renderOrderSummary() {
+    const calc = this.orderCalculation;
+    if (!calc) return;
+
+    document.getElementById('checkout-subtotal').textContent = formatCurrency(calc.subtotalPaise);
+    
+    const deliveryEl = document.getElementById('checkout-delivery');
+    if (calc.isFreeDelivery) {
+      deliveryEl.innerHTML = `<span style="color: var(--color-success); font-weight: 600;">FREE</span>`;
+    } else {
+      deliveryEl.textContent = formatCurrency(calc.deliveryPaise);
+    }
+
+    document.getElementById('checkout-total').textContent = formatCurrency(calc.finalPayablePaise);
+
+    // Render item lines
+    const itemsContainer = document.getElementById('checkout-items-list');
+    if (itemsContainer) {
+      let html = '';
+      calc.items.forEach(i => {
+        const title = typeof i.name === 'object' ? (i.name[i18n.currentLanguage] || i.name['en']) : i.name;
+        html += `
+          <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+            <span>${title} &times; ${i.quantity}</span>
+            <strong>${formatCurrency(i.lineTotalPaise)}</strong>
+          </div>
+        `;
+      });
+      itemsContainer.innerHTML = html;
+    }
+  }
+
+  /**
+   * Create Pending Order in Firestore
+   */
+  async createPendingOrder() {
+    if (!this.currentUser) throw new Error('Please sign in to place your order.');
+    if (!this.selectedAddress) throw new Error('Please select or add a delivery address.');
+    if (!this.pinServiceability.serviceable) {
+      throw new Error(i18n.t('checkout.pinUnavailable') || 'Currently Not Available in Your PIN Code.');
+    }
+
+    const items = cartManager.getItems();
+    if (items.length === 0) throw new Error('Your cart is empty.');
+
+    const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+    const orderData = {
+      orderNumber,
+      customerUid: this.currentUser.uid,
+      customerEmail: this.currentUser.email,
+      customerName: `${this.currentUser.displayName || ''}`.trim(),
+      addressSnapshot: { ...this.selectedAddress },
+      itemsSnapshot: this.orderCalculation.items,
+      subtotalPaise: this.orderCalculation.subtotalPaise,
+      deliveryPaise: this.orderCalculation.deliveryPaise,
+      finalPayablePaise: this.orderCalculation.finalPayablePaise,
+      paymentMethod: 'MANUAL_UPI',
+      paymentStatus: 'Pending Payment',
+      orderStatus: 'Pending Payment',
+      idempotencyKey: this.idempotencyKey,
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion: '2026-10-27',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    const docRef = await addDoc(collection(db, 'orders'), orderData);
+    return { orderId: docRef.id, orderNumber, finalPayablePaise: this.orderCalculation.finalPayablePaise };
+  }
+}
+
+export const checkoutController = new CheckoutController();
+

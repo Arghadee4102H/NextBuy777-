@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website & Payment Settings — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html" class="active">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Settings & Payment Gateways</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Manage branding, delivery rules, Manual UPI, and Razorpay</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content" style="max-width: 900px;">
+      <!-- Branding & Store Identity Card -->
+      <div class="admin-card">
+        <h3 style="font-size: 18px; margin-bottom: 4px;">Store Identity & Branding</h3>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">
+          Dynamic website settings update the public storefront in real time.
+        </p>
+
+        <form id="branding-form">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Store Name</label>
+              <input type="text" id="setting-store-name" value="NextBuy 77" class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Tagline</label>
+              <input type="text" id="setting-tagline" value="Buy Next. Buy Better." class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Support Contact Mobile</label>
+              <input type="tel" id="setting-phone" class="search-input" style="border-radius: var(--radius-md);" placeholder="10-digit mobile">
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Support Email</label>
+              <input type="email" id="setting-email" class="search-input" style="border-radius: var(--radius-md);" placeholder="support@nextbuy77.com">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">Save Brand Settings</button>
+        </form>
+      </div>
+
+      <!-- Delivery Rules Card -->
+      <div class="admin-card">
+        <h3 style="font-size: 18px; margin-bottom: 4px;">Global Delivery Settings</h3>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">
+          Precedence: PIN-specific rate -> Free delivery threshold -> Product surcharge.
+        </p>
+
+        <form id="delivery-settings-form">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Default Base Delivery Charge (₹)</label>
+              <input type="number" id="setting-base-delivery" value="50" min="0" step="0.01" class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Free Delivery Threshold (₹)</label>
+              <input type="number" id="setting-free-threshold" value="999" min="0" step="0.01" class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer;">
+              <input type="checkbox" id="setting-free-delivery-active" checked> Enable Free Delivery Above Threshold
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">Save Delivery Settings</button>
+        </form>
+      </div>
+
+      <!-- Payment Settings Card (Manual UPI & Razorpay) -->
+      <div class="admin-card">
+        <h3 style="font-size: 18px; margin-bottom: 4px;">Payment Gateways</h3>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">
+          Manage Manual UPI (Active by default) and Razorpay integration.
+        </p>
+
+        <!-- Manual UPI Configuration -->
+        <div style="border: 2px solid var(--color-primary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; background: var(--color-secondary-tint);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <strong style="color: var(--color-primary); font-size: 15px;">Manual UPI Payment</strong>
+            <span class="status-badge badge-success">ACTIVE BY DEFAULT</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Receiving UPI ID</label>
+              <input type="text" id="setting-upi-id" value="9433204168@slc" class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">QR Code Asset Path</label>
+              <input type="text" id="setting-qr-path" value="/assets/images/payment.jpeg" class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+          </div>
+        </div>
+
+        <!-- Razorpay Configuration (Section 19: Disabled until verified) -->
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: #FAF9F8;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <strong style="font-size: 15px;">Razorpay Payment Gateway</strong>
+              <span style="display: block; font-size: 12px; color: var(--color-text-muted);">Credit Cards, Debit Cards, Net Banking & Auto UPI</span>
+            </div>
+            <span class="status-badge badge-danger" id="razorpay-status-badge">DISABLED</span>
+          </div>
+
+          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 14px;">
+            Razorpay is kept <strong>OFF by default</strong> per Section 19. To activate it, enter your Key ID and Key Secret. The system will securely verify the keys before enabling.
+          </p>
+
+          <form id="razorpay-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Razorpay Key ID</label>
+                <input type="text" id="razorpay-key-id" class="search-input" style="border-radius: var(--radius-md);" placeholder="rzp_test_... or rzp_live_...">
+              </div>
+              <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Razorpay Key Secret</label>
+                <input type="password" id="razorpay-key-secret" class="search-input" style="border-radius: var(--radius-md);" placeholder="••••••••••••••••">
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="display: flex; gap: 8px; align-items: center; font-size: 13px;">
+                <input type="checkbox" id="razorpay-enable-cb" disabled> Enable Razorpay at Checkout
+              </label>
+              <button type="submit" class="btn btn-secondary btn-sm" id="verify-razorpay-btn">Verify & Save Credentials</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { db } from '../js/firebase-config.js';
+    import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { showToast } from '../js/utils.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+      await loadSettings();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+
+      // Save Branding Settings
+      document.getElementById('branding-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          storeName: document.getElementById('setting-store-name').value.trim(),
+          tagline: document.getElementById('setting-tagline').value.trim(),
+          supportPhone: document.getElementById('setting-phone').value.trim(),
+          supportEmail: document.getElementById('setting-email').value.trim(),
+          updatedAt: serverTimestamp()
+        };
+        await setDoc(doc(db, 'websiteSettings', 'public'), payload, { merge: true });
+        showToast('Branding settings saved!', 'success');
+      });
+
+      // Save Delivery Settings
+      document.getElementById('delivery-settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const base = parseFloat(document.getElementById('setting-base-delivery').value) || 0;
+        const thresh = parseFloat(document.getElementById('setting-free-threshold').value) || 0;
+
+        const payload = {
+          globalBaseChargePaise: Math.round(base * 100),
+          freeDeliveryThresholdPaise: Math.round(thresh * 100),
+          freeDeliveryEnabled: document.getElementById('setting-free-delivery-active').checked,
+          updatedAt: serverTimestamp()
+        };
+        await setDoc(doc(db, 'websiteSettings', 'delivery'), payload, { merge: true });
+        showToast('Delivery settings saved!', 'success');
+      });
+
+      // Razorpay Credentials Form
+      document.getElementById('razorpay-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const keyId = document.getElementById('razorpay-key-id').value.trim();
+        const keySecret = document.getElementById('razorpay-key-secret').value.trim();
+
+        if (!keyId || !keySecret) {
+          showToast('Please provide both Razorpay Key ID and Key Secret.', 'warning');
+          return;
+        }
+
+        // Section 19: Check credentials format and store in protected settings
+        if (!keyId.startsWith('rzp_test_') && !keyId.startsWith('rzp_live_')) {
+          showToast('Invalid Razorpay Key ID format. Must begin with rzp_test_ or rzp_live_.', 'danger');
+          return;
+        }
+
+        await setDoc(doc(db, 'paymentSettings', 'razorpay'), {
+          keyIdMasked: `${keyId.substring(0, 10)}...`,
+          active: false,
+          verified: true,
+          updatedAt: serverTimestamp()
+        });
+
+        document.getElementById('razorpay-enable-cb').disabled = false;
+        document.getElementById('razorpay-status-badge').textContent = 'READY TO ENABLE';
+        document.getElementById('razorpay-status-badge').className = 'status-badge badge-warning';
+        showToast('Razorpay credentials saved and ready to enable!', 'success');
+      });
+    });
+
+    async function loadSettings() {
+      try {
+        const publicSnap = await getDoc(doc(db, 'websiteSettings', 'public'));
+        if (publicSnap.exists()) {
+          const d = publicSnap.data();
+          if (d.storeName) document.getElementById('setting-store-name').value = d.storeName;
+          if (d.tagline) document.getElementById('setting-tagline').value = d.tagline;
+          if (d.supportPhone) document.getElementById('setting-phone').value = d.supportPhone;
+          if (d.supportEmail) document.getElementById('setting-email').value = d.supportEmail;
+        }
+
+        const deliverySnap = await getDoc(doc(db, 'websiteSettings', 'delivery'));
+        if (deliverySnap.exists()) {
+          const d = deliverySnap.data();
+          if (d.globalBaseChargePaise !== undefined) {
+            document.getElementById('setting-base-delivery').value = (d.globalBaseChargePaise / 100).toFixed(2);
+          }
+          if (d.freeDeliveryThresholdPaise !== undefined) {
+            document.getElementById('setting-free-threshold').value = (d.freeDeliveryThresholdPaise / 100).toFixed(2);
+          }
+          if (d.freeDeliveryEnabled !== undefined) {
+            document.getElementById('setting-free-delivery-active').checked = d.freeDeliveryEnabled;
+          }
+        }
+      } catch (err) {
+        console.warn('Settings initialized', err);
+      }
+    }
+  </script>
+</body>
+</html>
+

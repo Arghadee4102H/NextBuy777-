@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — NextBuy 77</title>
+  <meta name="description" content="Secure Checkout on NextBuy 77. Fast delivery and direct UPI payment.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+      <div class="header-actions">
+        <span style="font-size: 14px; font-weight: 600; color: var(--color-primary);">🔒 Secure Checkout</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main container" style="margin-top: var(--space-8); margin-bottom: var(--space-12);">
+    <!-- PIN Availability Alert (Section 11) -->
+    <div id="pin-availability-alert" style="display: none; margin-bottom: var(--space-6); padding: 12px 16px; border-radius: var(--radius-md);"></div>
+
+    <div style="display: grid; grid-template-columns: 1.8fr 1.2fr; gap: var(--space-8);">
+      <!-- Left Column: Delivery Address & Payment Method -->
+      <div>
+        <!-- Step 1: Delivery Address -->
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;" data-i18n="checkout.deliveryAddress">1. Delivery Address</h2>
+          
+          <div id="checkout-addresses-list" style="margin-bottom: 16px;">
+            <p style="font-size: 14px; color: var(--color-text-muted);">Loading your saved addresses...</p>
+          </div>
+
+          <details style="border-top: 1px solid var(--color-border); padding-top: 12px;">
+            <summary style="font-size: 14px; font-weight: 600; cursor: pointer; color: var(--color-primary);" data-i18n="checkout.addNewAddress">+ Add New Address</summary>
+            <form id="checkout-new-address-form" style="margin-top: 12px;">
+              <div style="margin-bottom: 8px;">
+                <input type="text" id="new-addr-name" placeholder="Full Name" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div style="margin-bottom: 8px;">
+                <input type="tel" id="new-addr-mobile" placeholder="10-digit Mobile" required pattern="[6-9][0-9]{9}" class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div style="margin-bottom: 8px;">
+                <input type="text" id="new-addr-house" placeholder="House / Building / Apartment" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div style="margin-bottom: 8px;">
+                <input type="text" id="new-addr-street" placeholder="Street / Locality" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="new-addr-city" placeholder="City / Village" required class="search-input" style="border-radius: var(--radius-md);">
+                <input type="text" id="new-addr-pin" placeholder="6-digit PIN Code" required pattern="[1-9][0-9]{5}" maxlength="6" class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                <input type="text" id="new-addr-district" placeholder="District" required class="search-input" style="border-radius: var(--radius-md);">
+                <input type="text" id="new-addr-state" placeholder="State" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <button type="submit" class="btn btn-secondary btn-sm">Save & Use This Address</button>
+            </form>
+          </details>
+        </div>
+
+        <!-- Step 2: Payment Method (Manual UPI Active by Default) -->
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;" data-i18n="checkout.paymentMethod">2. Payment Method</h2>
+
+          <!-- Manual UPI Box -->
+          <div style="border: 2px solid var(--color-primary); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-secondary-tint);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <strong style="color: var(--color-primary); font-size: 16px;" data-i18n="checkout.manualUpi">Direct Manual UPI (Recommended)</strong>
+              <span style="font-size: 11px; background: var(--color-success); color: #fff; padding: 2px 8px; border-radius: var(--radius-pill); font-weight: 700;">ACTIVE</span>
+            </div>
+
+            <p style="font-size: 13px; color: var(--color-text-main); line-height: 1.5; margin-bottom: 16px;" data-i18n="checkout.upiInstructions">
+              Scan the QR code or copy our official UPI ID to pay via GPay, PhonePe, Paytm, or BHIM. After paying, submit your 12-digit UTR reference number.
+            </p>
+
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
+              <!-- QR Code -->
+              <div style="width: 140px; height: 140px; background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 6px; display: flex; align-items: center; justify-content: center;">
+                <img src="assets/images/payment.jpeg" alt="NextBuy 77 Official Payment QR" style="width: 100%; height: 100%; object-fit: contain;">
+              </div>
+
+              <!-- UPI Details -->
+              <div style="flex: 1; min-width: 200px;">
+                <span style="font-size: 12px; color: var(--color-text-muted); display: block;" data-i18n="checkout.upiIdLabel">Official UPI ID</span>
+                <div style="display: flex; gap: 8px; align-items: center; margin: 4px 0 12px;">
+                  <strong class="upi-id-badge" style="font-size: 16px; color: var(--color-primary); background: #fff; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--color-border);">
+                    9433204168@slc
+                  </strong>
+                  <button id="copy-upi-btn" class="btn btn-sm btn-secondary" style="min-height: 34px;">Copy</button>
+                </div>
+                <a id="open-upi-app-btn" href="upi://pay?pa=9433204168@slc&pn=NextBuy%2077&cu=INR" class="btn btn-accent btn-sm" style="display: inline-flex;">
+                  📱 Open UPI App
+                </a>
+              </div>
+            </div>
+
+            <!-- UTR Reference Input Form -->
+            <div id="utr-section" style="border-top: 1px solid var(--color-border); padding-top: 12px;">
+              <label for="utr-input" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">
+                UTR / Transaction Reference (RRN) Number:
+              </label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="utr-input" placeholder="e.g. 123456789012" maxlength="35" class="search-input" style="border-radius: var(--radius-md); text-transform: uppercase;">
+                <button id="submit-utr-btn" class="btn btn-primary btn-sm" style="min-width: 130px;">
+                  Submit Reference
+                </button>
+              </div>
+              <span style="font-size: 11px; color: var(--color-text-muted); display: block; margin-top: 4px;">
+                Stock will be reserved immediately upon valid UTR submission.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary & Place Order -->
+      <div>
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); position: sticky; top: 96px;">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;" data-i18n="checkout.orderSummary">Order Summary</h2>
+
+          <!-- Items list -->
+          <div id="checkout-items-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;"></div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+            <span data-i18n="cart.subtotal">Subtotal</span>
+            <strong id="checkout-subtotal">₹0.00</strong>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+            <span data-i18n="cart.deliveryFee">Delivery Charges</span>
+            <strong id="checkout-delivery">₹0.00</strong>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-top: 16px; margin-bottom: 20px; font-size: 20px; font-weight: 700; color: var(--color-primary); border-top: 2px solid var(--color-border); padding-top: 12px;">
+            <span data-i18n="cart.total">Final Payable</span>
+            <span id="checkout-total">₹0.00</span>
+          </div>
+
+          <!-- Terms acceptance checkbox (Section 14) -->
+          <div style="margin-bottom: 20px; font-size: 12px; color: var(--color-text-main); display: flex; gap: 8px; align-items: flex-start;">
+            <input type="checkbox" id="terms-agree-cb" required style="margin-top: 2px; cursor: pointer;">
+            <label for="terms-agree-cb" style="cursor: pointer;">
+              I agree to the <a href="terms.html" target="_blank">Terms & Conditions</a> and <a href="privacy.html" target="_blank">Privacy Policy</a> (Dated 27 October 2026).
+            </label>
+          </div>
+
+          <button id="place-order-btn" class="btn btn-primary btn-block" style="font-size: 16px;" disabled>
+            Confirm & Reserve Order
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border: none; padding-top: 0;">
+        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { auth } from './js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { checkoutController } from './js/checkout.js';
+    import { copyToClipboard, showToast, validateUtr } from './js/utils.js';
+    import { profileController } from './js/profile.js';
+
+    let currentOrderInfo = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+      securityDeterrents.init();
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.href = 'login.html?redirect=/checkout.html';
+          return;
+        }
+        await checkoutController.init(user);
+      });
+
+      // Terms agreement checkbox enables Place Order button
+      document.getElementById('terms-agree-cb').addEventListener('change', (e) => {
+        document.getElementById('place-order-btn').disabled = !e.target.checked;
+      });
+
+      // Copy UPI ID button
+      document.getElementById('copy-upi-btn').addEventListener('click', async () => {
+        const success = await copyToClipboard('9433204168@slc');
+        if (success) showToast(i18n.t('checkout.copied') || 'UPI ID copied!', 'success');
+      });
+
+      // Place Order (Confirm and generate order reference)
+      document.getElementById('place-order-btn').addEventListener('click', async () => {
+        try {
+          const res = await checkoutController.createPendingOrder();
+          currentOrderInfo = res;
+          showToast(`Order ${res.orderNumber} created! Please complete payment via UPI.`, 'success', 5000);
+          document.getElementById('place-order-btn').disabled = true;
+          document.getElementById('place-order-btn').textContent = `Order ${res.orderNumber} Reserved`;
+          
+          // Scroll to payment section
+          document.getElementById('utr-section').scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('utr-input').focus();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+
+      // Submit UTR Button
+      document.getElementById('submit-utr-btn').addEventListener('click', async () => {
+        const rawUtr = document.getElementById('utr-input').value;
+        const { valid, normalized } = validateUtr(rawUtr);
+
+        if (!valid) {
+          showToast('Please enter a valid 6 to 35 digit UTR / UPI reference number.', 'danger');
+          return;
+        }
+
+        if (!currentOrderInfo) {
+          showToast('Please confirm your order first before submitting UTR.', 'warning');
+          return;
+        }
+
+        // Navigate / trigger Phase 5 stock reservation & verification flow
+        window.dispatchEvent(new CustomEvent('utrSubmitted', { 
+          detail: { orderId: currentOrderInfo.orderId, utr: normalized } 
+        }));
+      });
+
+      // Add New Address inside Checkout
+      document.getElementById('checkout-new-address-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+          fullName: document.getElementById('new-addr-name').value,
+          mobile: document.getElementById('new-addr-mobile').value,
+          houseBuilding: document.getElementById('new-addr-house').value,
+          streetLocality: document.getElementById('new-addr-street').value,
+          cityVillage: document.getElementById('new-addr-city').value,
+          pinCode: document.getElementById('new-addr-pin').value,
+          district: document.getElementById('new-addr-district').value,
+          state: document.getElementById('new-addr-state').value
+        };
+
+        try {
+          await profileController.saveAddress(data);
+          document.getElementById('checkout-new-address-form').reset();
+          await checkoutController.loadAddresses();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

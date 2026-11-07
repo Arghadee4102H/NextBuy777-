@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NextBuy 77 — Buy Next. Buy Better.</title>
+  <meta name="description" content="NextBuy 77 is your destination for fashion accessories, imitation jewellery, perfumes, and lifestyle products. Buy Next. Buy Better.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="header-search">
+        <form class="header-search-form" action="products.html" method="GET">
+          <input type="text" name="q" class="search-input" placeholder="Search fashion, jewellery, perfumes..." data-i18n-placeholder="nav.searchPlaceholder" aria-label="Search products">
+          <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
+        </form>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
+        <a href="profile.html" class="action-btn" id="user-nav-btn">
+          <span>👤</span>
+          <span data-i18n="nav.login">Sign In</span>
+        </a>
+        <a href="cart.html" class="action-btn" style="background-color: var(--color-bg-subtle);">
+          <span>🛒</span>
+          <span data-i18n="nav.cart">Cart</span>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <!-- Top Banner Slider Section (User specification: Placeholders like "Banner" will appear where actual banners should be) -->
+    <section class="banner-section">
+      <div class="container">
+        <div id="banner-slider-container" class="banner-slider-container">
+          <div class="banner-placeholder">
+            <div class="banner-placeholder-icon">🏷️</div>
+            <h2 class="banner-placeholder-title" data-i18n="home.bannerPlaceholderTitle">Banner</h2>
+            <p class="banner-placeholder-text" data-i18n="home.bannerPlaceholderText">
+              Banners are currently managed via the Admin Panel. Upload your top promotional sliders directly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust Features Banner -->
+    <section style="background: var(--color-bg-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); padding: var(--space-4) 0; margin-bottom: var(--space-8);">
+      <div class="container" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: var(--space-4); text-align: center;">
+        <div><strong>💎 100% Curated Quality</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Fashion, Jewellery & Perfumes</span></div>
+        <div><strong>⚡ Direct UPI Payment</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Instant verification via GPay/PhonePe</span></div>
+        <div><strong>📦 Fast & Reliable Shipping</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Pan-India delivery coverage</span></div>
+        <div><strong>🔒 Secure & Protected</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Direct admin order management</span></div>
+      </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="container">
+      <div class="section-title-wrap">
+        <h2 class="section-title" data-i18n="home.featuredProducts">Featured Products</h2>
+        <a href="products.html" style="font-size: 14px; font-weight: 600;" data-i18n="home.allProducts">View All &rarr;</a>
+      </div>
+      <div id="featured-grid" class="product-grid">
+        <!-- Rendered dynamically by products.js (empty state renders "Product" placeholder with "Add to Cart") -->
+      </div>
+    </section>
+
+    <!-- All Products / Catalog Section -->
+    <section class="container" style="margin-top: var(--space-8);">
+      <div class="section-title-wrap">
+        <h2 class="section-title" data-i18n="home.newArrivals">New Arrivals</h2>
+        <a href="products.html" style="font-size: 14px; font-weight: 600;" data-i18n="home.allProducts">Explore Catalog &rarr;</a>
+      </div>
+      <div id="all-products-grid" class="product-grid">
+        <!-- Rendered dynamically by products.js (empty state renders "Product" placeholder with "Add to Cart") -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3 class="footer-brand-title">NextBuy 77</h3>
+          <p class="footer-brand-tagline" data-i18n="brand.tagline">Buy Next. Buy Better.</p>
+          <p style="font-size: 14px; opacity: 0.85;" data-i18n="footer.aboutText">
+            NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.quickLinks">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+            <li><a href="products.html" data-i18n="nav.products">Products</a></li>
+            <li><a href="cart.html" data-i18n="nav.cart">Cart</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.legal">Legal</h4>
+          <ul class="footer-links">
+            <li><a href="terms.html" data-i18n="footer.terms">Terms & Conditions</a></li>
+            <li><a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title">Official Contact</h4>
+          <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
+          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { productManager } from './js/products.js';
+    import { cartManager } from './js/cart.js';
+    import { auth } from './js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Initialize Localization & Anti-Copy
+      await i18n.init();
+      securityDeterrents.init();
+
+      // 2. Language Selector
+      const langSelect = document.getElementById('lang-select');
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => i18n.setLanguage(e.target.value));
+      }
+
+      // 3. Update Cart Badge Count
+      cartManager.updateCartBadge();
+
+      // 4. Render Banners & Products
+      await productManager.refreshUI();
+
+      // 5. Auth State Listener for Navigation
+      onAuthStateChanged(auth, (user) => {
+        const userBtn = document.getElementById('user-nav-btn');
+        if (userBtn) {
+          if (user) {
+            userBtn.innerHTML = `<span>👤</span> <span>${user.displayName ? user.displayName.split(' ')[0] : 'Profile'}</span>`;
+            userBtn.href = 'profile.html';
+          } else {
+            userBtn.innerHTML = `<span>👤</span> <span data-i18n="nav.login">${i18n.t('nav.login')}</span>`;
+            userBtn.href = 'login.html';
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

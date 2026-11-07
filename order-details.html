@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details — NextBuy 77</title>
+  <meta name="description" content="View your order status, items, delivery details, and payment verification on NextBuy 77.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+  <style>
+    @media print {
+      .site-header, .site-footer, .no-print, .action-btn { display: none !important; }
+      body { background: #fff !important; }
+      .container { max-width: 100% !important; padding: 0 !important; }
+      .invoice-card { border: none !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+      <div class="header-actions">
+        <a href="profile.html" class="action-btn" data-i18n="nav.profile">My Account</a>
+        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main container" style="margin-top: var(--space-8); margin-bottom: var(--space-12); max-width: 800px;">
+    <!-- Order Card / Invoice Card -->
+    <div class="invoice-card" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-sm);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; border-bottom: 2px solid var(--color-border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <span style="font-size: 13px; color: var(--color-text-muted); text-transform: uppercase;">Order Confirmation</span>
+          <h1 id="order-number-title" style="font-size: var(--font-size-2xl); margin: 4px 0;">ORD-...</h1>
+          <p id="order-date-text" style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 0;">Date: ...</p>
+        </div>
+        <div style="text-align: right;" class="no-print">
+          <button id="print-invoice-btn" class="btn btn-secondary btn-sm" style="margin-bottom: 8px;">🖨️ Print Invoice</button>
+        </div>
+      </div>
+
+      <!-- Status Badges Row -->
+      <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div style="background: var(--color-bg-subtle); padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px;">
+          <span style="color: var(--color-text-muted); display: block; font-size: 11px;">PAYMENT STATUS</span>
+          <strong id="badge-payment-status" style="color: var(--color-primary); font-size: 14px;">Pending Payment</strong>
+        </div>
+        <div style="background: var(--color-info-bg); padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px;">
+          <span style="color: var(--color-info); display: block; font-size: 11px;">ORDER PROGRESS</span>
+          <strong id="badge-order-status" style="color: var(--color-info); font-size: 14px;">Pending Payment</strong>
+        </div>
+        <div id="utr-badge-container" style="display: none; background: var(--color-secondary-tint); padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px;">
+          <span style="color: var(--color-primary); display: block; font-size: 11px;">SUBMITTED UTR REF</span>
+          <strong id="badge-utr-ref" class="upi-id-badge" style="color: var(--color-primary); font-size: 14px;">-</strong>
+        </div>
+      </div>
+
+      <!-- Delivery Address Snapshot -->
+      <div style="margin-bottom: 24px; padding: 16px; background: var(--color-bg-body); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+        <h3 style="font-size: 15px; margin-bottom: 6px;">Delivery Details</h3>
+        <p id="order-address-text" style="font-size: 14px; color: var(--color-text-main); line-height: 1.5; margin-bottom: 0;">Loading address...</p>
+      </div>
+
+      <!-- Items List -->
+      <h3 style="font-size: 16px; margin-bottom: 12px;">Ordered Products</h3>
+      <div id="order-items-table" style="margin-bottom: 24px;">
+        <p style="font-size: 14px; color: var(--color-text-muted);">Loading items...</p>
+      </div>
+
+      <!-- Financial Totals -->
+      <div style="border-top: 1px solid var(--color-border); padding-top: 16px; max-width: 320px; margin-left: auto;">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+          <span>Subtotal</span>
+          <strong id="order-subtotal">₹0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+          <span>Delivery Charges</span>
+          <strong id="order-delivery">₹0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: var(--color-primary); border-top: 2px solid var(--color-border); padding-top: 8px;">
+          <span>Final Total</span>
+          <span id="order-final-total">₹0.00</span>
+        </div>
+      </div>
+
+      <!-- Order Tracking Timeline -->
+      <div style="margin-top: 32px; border-top: 1px solid var(--color-border); padding-top: 16px;">
+        <h3 style="font-size: 15px; margin-bottom: 12px;">Status History</h3>
+        <div id="order-timeline"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer no-print">
+    <div class="container">
+      <div class="footer-bottom" style="border: none; padding-top: 0;">
+        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { db, auth } from './js/firebase-config.js';
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { formatCurrency, formatDateIST, escapeHtml } from './js/utils.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+      securityDeterrents.init();
+
+      document.getElementById('print-invoice-btn').addEventListener('click', () => {
+        window.print();
+      });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('id');
+
+      if (!orderId) {
+        window.location.href = 'profile.html';
+        return;
+      }
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.href)}`;
+          return;
+        }
+        await loadOrderData(orderId, user.uid);
+      });
+    });
+
+    async function loadOrderData(orderId, uid) {
+      try {
+        const snap = await getDoc(doc(db, 'orders', orderId));
+        if (!snap.exists()) {
+          alert('Order not found.');
+          window.location.href = 'profile.html';
+          return;
+        }
+
+        const data = snap.data();
+        if (data.customerUid !== uid) {
+          alert('Access denied: You do not own this order.');
+          window.location.href = 'profile.html';
+          return;
+        }
+
+        document.getElementById('order-number-title').textContent = data.orderNumber || orderId;
+        document.getElementById('order-date-text').textContent = `Placed on: ${formatDateIST(data.createdAt)}`;
+        document.getElementById('badge-payment-status').textContent = data.paymentStatus || 'Pending Payment';
+        document.getElementById('badge-order-status').textContent = data.orderStatus || 'Pending Payment';
+
+        if (data.utr) {
+          document.getElementById('utr-badge-container').style.display = 'block';
+          document.getElementById('badge-utr-ref').textContent = data.utr;
+        }
+
+        // Render Address
+        const addr = data.addressSnapshot || {};
+        document.getElementById('order-address-text').innerHTML = `
+          <strong>${escapeHtml(addr.fullName || '')}</strong> (📞 ${escapeHtml(addr.mobile || '')})<br>
+          ${escapeHtml(addr.houseBuilding || '')}, ${escapeHtml(addr.streetLocality || '')}, ${escapeHtml(addr.cityVillage || '')}<br>
+          ${escapeHtml(addr.district || '')}, ${escapeHtml(addr.state || '')} — <strong>${escapeHtml(addr.pinCode || '')}</strong>
+        `;
+
+        // Render Items
+        let itemsHtml = '';
+        (data.itemsSnapshot || []).forEach(item => {
+          const title = typeof item.name === 'object' ? (item.name.en || Object.values(item.name)[0]) : item.name;
+          itemsHtml += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 14px;">
+              <div>
+                <strong>${escapeHtml(title)}</strong> &times; ${item.quantity}
+                ${item.variant ? `<br><span style="font-size: 12px; color: var(--color-accent);">${escapeHtml(item.variant.name)}</span>` : ''}
+              </div>
+              <div>${formatCurrency(item.lineTotalPaise || (item.pricePaise * item.quantity))}</div>
+            </div>
+          `;
+        });
+        document.getElementById('order-items-table').innerHTML = itemsHtml;
+
+        // Render Totals
+        document.getElementById('order-subtotal').textContent = formatCurrency(data.subtotalPaise || 0);
+        document.getElementById('order-delivery').textContent = formatCurrency(data.deliveryPaise || 0);
+        document.getElementById('order-final-total').textContent = formatCurrency(data.finalPayablePaise || 0);
+
+        // Timeline
+        const timeline = data.statusHistory || [];
+        let timeHtml = '';
+        timeline.forEach(t => {
+          timeHtml += `
+            <div style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 6px;">
+              &bull; <strong>${escapeHtml(t.status)}</strong> — ${formatDateIST(t.timestamp)}
+            </div>
+          `;
+        });
+        document.getElementById('order-timeline').innerHTML = timeHtml || '<p style="font-size:13px; color:var(--color-text-muted);">No history recorded yet.</p>';
+      } catch (err) {
+        console.error('Error loading order data', err);
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — NextBuy 77</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html" class="active">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Business Dashboard</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Real-time metrics and order activity</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600; color: var(--color-primary);">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-content">
+      <!-- Real-Time Metrics Row -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-card-label" title="Sum of final payable of orders with Payment Verified">Verified Revenue</span>
+          <div class="metric-card-val" id="metric-revenue">₹0.00</div>
+          <span class="metric-card-sub">From verified customer payments</span>
+        </div>
+
+        <div class="metric-card">
+          <span class="metric-card-label" title="Total customer orders placed">Total Orders</span>
+          <div class="metric-card-val" id="metric-orders">0</div>
+          <span class="metric-card-sub" id="metric-orders-sub">0 delivered</span>
+        </div>
+
+        <div class="metric-card" style="border-left: 4px solid var(--color-warning);">
+          <span class="metric-card-label" title="Orders with UTR submitted awaiting admin manual review">Pending Verification</span>
+          <div class="metric-card-val" id="metric-pending-payments" style="color: var(--color-warning);">0</div>
+          <span class="metric-card-sub"><a href="payments.html" style="color: var(--color-warning); text-decoration: underline;">Review payment queue &rarr;</a></span>
+        </div>
+
+        <div class="metric-card">
+          <span class="metric-card-label" title="Units currently reserved under UTR submission">Reserved Stock</span>
+          <div class="metric-card-val" id="metric-reserved-units">0 units</div>
+          <span class="metric-card-sub">Active reservations</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions Row -->
+      <div style="display: flex; gap: 12px; margin-bottom: var(--space-8); flex-wrap: wrap;">
+        <a href="products.html?action=new" class="btn btn-primary btn-sm">+ Add New Product</a>
+        <a href="banners.html?action=new" class="btn btn-secondary btn-sm">+ Add Promotional Banner</a>
+        <a href="categories.html" class="btn btn-secondary btn-sm">Manage Categories</a>
+      </div>
+
+      <!-- Recent Orders Table Card -->
+      <div class="admin-card">
+        <div class="card-header-row">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Recent Orders</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Latest incoming customer orders</span>
+          </div>
+          <a href="orders.html" style="font-size: 13px; font-weight: 600;">View All Orders &rarr;</a>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order Number</th>
+                <th>Customer</th>
+                <th>Date (IST)</th>
+                <th>Amount</th>
+                <th>Payment Status</th>
+                <th>Order Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="recent-orders-tbody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  No orders recorded yet. Place orders via the customer storefront to see live data here.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { db } from '../js/firebase-config.js';
+    import { collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { formatCurrency, formatDateIST, escapeHtml } from '../js/utils.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', async () => {
+        await adminAuth.logout();
+      });
+
+      await loadDashboardMetrics();
+    });
+
+    async function loadDashboardMetrics() {
+      try {
+        const ordersRef = collection(db, 'orders');
+        const ordersSnap = await getDocs(ordersRef);
+
+        let totalRevenuePaise = 0;
+        let totalOrders = 0;
+        let pendingPayments = 0;
+        let deliveredCount = 0;
+
+        ordersSnap.forEach(doc => {
+          const d = doc.data();
+          totalOrders++;
+          if (d.paymentStatus === 'Payment Verified') {
+            totalRevenuePaise += (d.finalPayablePaise || 0);
+          }
+          if (d.paymentStatus === 'Payment Submitted' || d.paymentStatus === 'Payment Under Verification') {
+            pendingPayments++;
+          }
+          if (d.orderStatus === 'Delivered') {
+            deliveredCount++;
+          }
+        });
+
+        document.getElementById('metric-revenue').textContent = formatCurrency(totalRevenuePaise);
+        document.getElementById('metric-orders').textContent = totalOrders;
+        document.getElementById('metric-orders-sub').textContent = `${deliveredCount} delivered`;
+        document.getElementById('metric-pending-payments').textContent = pendingPayments;
+
+        // Fetch recent 10 orders
+        const recentQuery = query(ordersRef, orderBy('createdAt', 'desc'), limit(10));
+        const recentSnap = await getDocs(recentQuery);
+        const tbody = document.getElementById('recent-orders-tbody');
+
+        if (!recentSnap.empty) {
+          let html = '';
+          recentSnap.forEach(doc => {
+            const o = doc.data();
+            const dateStr = formatDateIST(o.createdAt);
+            const amount = formatCurrency(o.finalPayablePaise || 0);
+
+            html += `
+              <tr>
+                <td><strong>${escapeHtml(o.orderNumber || doc.id)}</strong></td>
+                <td>${escapeHtml(o.customerName || o.customerEmail || 'Guest')}</td>
+                <td>${dateStr}</td>
+                <td><strong>${amount}</strong></td>
+                <td><span class="status-badge ${o.paymentStatus === 'Payment Verified' ? 'badge-success' : 'badge-warning'}">${escapeHtml(o.paymentStatus || 'Pending')}</span></td>
+                <td><span class="status-badge badge-info">${escapeHtml(o.orderStatus || 'Pending')}</span></td>
+                <td><a href="orders.html?id=${doc.id}" class="btn btn-sm btn-secondary">Review</a></td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = html;
+        }
+      } catch (err) {
+        console.warn('Dashboard metrics initialized', err);
+      }
+    }
+  </script>
+</body>
+</html>
+

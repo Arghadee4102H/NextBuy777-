@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Data Export — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Reports & CSV Data Exports</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Export sales, order ledgers, and customer reports</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content" style="max-width: 900px;">
+      <div class="admin-card">
+        <h3 style="font-size: 18px; margin-bottom: 4px;">Download CSV Reports</h3>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 24px;">
+          Exports include formatted amounts in Indian Rupees (INR) and IST timestamps.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <!-- Orders CSV -->
+          <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px; background: #fff;">
+            <h4 style="font-size: 16px; margin-bottom: 8px;">📦 Orders Report</h4>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">
+              Export full order history, customer contact, items, and delivery totals.
+            </p>
+            <button id="export-orders-btn" class="btn btn-primary btn-block btn-sm">Export Orders CSV</button>
+          </div>
+
+          <!-- Payments CSV -->
+          <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px; background: #fff;">
+            <h4 style="font-size: 16px; margin-bottom: 8px;">💳 Payments & UTR Ledger</h4>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">
+              Export payment verification logs, submitted UTR numbers, and approval status.
+            </p>
+            <button id="export-payments-btn" class="btn btn-secondary btn-block btn-sm">Export Payments CSV</button>
+          </div>
+
+          <!-- Customers CSV -->
+          <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px; background: #fff;">
+            <h4 style="font-size: 16px; margin-bottom: 8px;">👥 Customer Directory</h4>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">
+              Export customer profile records, phone numbers, and loyalty points.
+            </p>
+            <button id="export-customers-btn" class="btn btn-secondary btn-block btn-sm">Export Customers CSV</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { db } from '../js/firebase-config.js';
+    import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { formatDateIST, showToast } from '../js/utils.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      adminAuth.protectPage();
+      document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+
+      // Export Orders
+      document.getElementById('export-orders-btn').addEventListener('click', async () => {
+        try {
+          const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc')));
+          const rows = [
+            ['Order Number', 'Date (IST)', 'Customer Name', 'Email', 'Payment Status', 'Order Status', 'UTR', 'Total (INR)']
+          ];
+
+          snap.forEach(d => {
+            const o = d.data();
+            rows.push([
+              o.orderNumber || d.id,
+              formatDateIST(o.createdAt),
+              o.customerName || '',
+              o.customerEmail || '',
+              o.paymentStatus || '',
+              o.orderStatus || '',
+              o.utr || '',
+              ((o.finalPayablePaise || 0) / 100).toFixed(2)
+            ]);
+          });
+
+          downloadCsv(rows, `NextBuy77_Orders_${new Date().toISOString().slice(0,10)}.csv`);
+          showToast('Orders CSV exported!', 'success');
+        } catch (e) {
+          showToast('Export failed', 'danger');
+        }
+      });
+
+      // Export Payments
+      document.getElementById('export-payments-btn').addEventListener('click', async () => {
+        try {
+          const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc')));
+          const rows = [
+            ['Order Number', 'Date', 'Customer Email', 'Payment Method', 'UTR Ref', 'Payment Status', 'Amount (INR)']
+          ];
+
+          snap.forEach(d => {
+            const o = d.data();
+            rows.push([
+              o.orderNumber || d.id,
+              formatDateIST(o.createdAt),
+              o.customerEmail || '',
+              o.paymentMethod || 'MANUAL_UPI',
+              o.utr || 'N/A',
+              o.paymentStatus || '',
+              ((o.finalPayablePaise || 0) / 100).toFixed(2)
+            ]);
+          });
+
+          downloadCsv(rows, `NextBuy77_Payments_${new Date().toISOString().slice(0,10)}.csv`);
+          showToast('Payments CSV exported!', 'success');
+        } catch (e) {
+          showToast('Export failed', 'danger');
+        }
+      });
+
+      // Export Customers
+      document.getElementById('export-customers-btn').addEventListener('click', async () => {
+        try {
+          const snap = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
+          const rows = [
+            ['UID', 'Name', 'Email', 'Mobile', 'Registered (IST)', 'Loyalty Points', 'Bonus Balance (INR)', 'Status']
+          ];
+
+          snap.forEach(d => {
+            const u = d.data();
+            rows.push([
+              d.id,
+              `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+              u.email || '',
+              u.mobile || '',
+              formatDateIST(u.createdAt),
+              u.loyaltyPoints || 0,
+              ((u.bonusBalancePaise || 0) / 100).toFixed(2),
+              u.status || 'active'
+            ]);
+          });
+
+          downloadCsv(rows, `NextBuy77_Customers_${new Date().toISOString().slice(0,10)}.csv`);
+          showToast('Customers CSV exported!', 'success');
+        } catch (e) {
+          showToast('Export failed', 'danger');
+        }
+      });
+    });
+
+    function downloadCsv(rows, filename) {
+      const csvContent = '\uFEFF' + rows.map(e => e.map(val => `"${(val || '').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
+

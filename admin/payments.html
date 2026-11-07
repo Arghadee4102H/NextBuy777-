@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Verification Queue — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html" class="active">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Manual UPI Verification Queue</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Verify customer UTR reference numbers against bank deposits</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="card-header-row">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Payments Awaiting Review</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Stock is reserved. Verify or reject to finalize inventory.</span>
+          </div>
+          <button id="refresh-payments-btn" class="btn btn-secondary btn-sm">🔄 Refresh Queue</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order Number</th>
+                <th>Customer</th>
+                <th>Payable Amount</th>
+                <th>Submitted UTR / RRN</th>
+                <th>Reservation Expiry</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  Loading pending payments...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Verification Modal -->
+  <div id="verify-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+        <h2 style="font-size: 20px; margin: 0;">Verify / Reject Payment</h2>
+        <button id="close-verify-modal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="background: var(--color-bg-body); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+          <span>Order Number:</span> <strong id="verify-order-num">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+          <span>Expected Payable:</span> <strong id="verify-expected-amount" style="color: var(--color-primary);">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+          <span>Submitted UTR:</span> <strong id="verify-utr-code" class="upi-id-badge" style="color: var(--color-accent); font-family: monospace;">-</strong>
+        </div>
+      </div>
+
+      <!-- Action Tabs / Forms -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <!-- Verify Action Box -->
+        <div style="border: 2px solid var(--color-success); border-radius: var(--radius-md); padding: 16px; background: #F7FAF8;">
+          <h3 style="font-size: 16px; color: var(--color-success); margin-bottom: 12px;">Approve Payment</h3>
+          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">Finalizes stock sale and marks order confirmed.</p>
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Actual Amount Received (₹)</label>
+            <input type="number" id="verify-received-amount" step="0.01" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+          <button id="btn-approve-payment" class="btn btn-primary btn-block" style="background: var(--color-success); border-color: var(--color-success);">
+            ✓ Verify & Confirm Order
+          </button>
+        </div>
+
+        <!-- Reject Action Box -->
+        <div style="border: 2px solid var(--color-danger); border-radius: var(--radius-md); padding: 16px; background: #FAF7F7;">
+          <h3 style="font-size: 16px; color: var(--color-danger); margin-bottom: 12px;">Reject Payment</h3>
+          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">Releases reserved stock back to available catalog.</p>
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Mandatory Reason</label>
+            <textarea id="reject-reason" rows="2" class="search-input" style="border-radius: var(--radius-md); resize: vertical;" placeholder="e.g. UTR not found in bank statement"></textarea>
+          </div>
+          <button id="btn-reject-payment" class="btn btn-secondary btn-block" style="color: var(--color-danger); border-color: var(--color-danger);">
+            ✕ Reject & Release Stock
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { orderPaymentManager } from './js/order-management.js';
+    import { db } from '../js/firebase-config.js';
+    import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { formatCurrency, formatDateIST, showToast, copyToClipboard, escapeHtml } from '../js/utils.js';
+
+    let selectedOrderId = null;
+    let selectedOrderData = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+      await loadPaymentQueue();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+      document.getElementById('refresh-payments-btn').addEventListener('click', () => loadPaymentQueue());
+
+      document.getElementById('close-verify-modal').addEventListener('click', () => {
+        document.getElementById('verify-modal').style.display = 'none';
+      });
+
+      // Approve Payment
+      document.getElementById('btn-approve-payment').addEventListener('click', async () => {
+        if (!selectedOrderId) return;
+        const amt = parseFloat(document.getElementById('verify-received-amount').value) || 0;
+        const amtPaise = Math.round(amt * 100);
+
+        try {
+          await orderPaymentManager.verifyPayment(selectedOrderId, amtPaise);
+          document.getElementById('verify-modal').style.display = 'none';
+          await loadPaymentQueue();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+
+      // Reject Payment
+      document.getElementById('btn-reject-payment').addEventListener('click', async () => {
+        if (!selectedOrderId) return;
+        const reason = document.getElementById('reject-reason').value.trim();
+        if (!reason) {
+          showToast('Please enter a rejection reason.', 'warning');
+          return;
+        }
+
+        try {
+          await orderPaymentManager.rejectPayment(selectedOrderId, reason);
+          document.getElementById('verify-modal').style.display = 'none';
+          await loadPaymentQueue();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+    });
+
+    async function loadPaymentQueue() {
+      const tbody = document.getElementById('payments-tbody');
+      try {
+        const q = query(
+          collection(db, 'orders'),
+          where('paymentStatus', 'in', ['Payment Submitted', 'Payment Under Verification']),
+          orderBy('createdAt', 'asc')
+        );
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 36px;">
+                🎉 All caught up! No pending payments awaiting verification.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        let html = '';
+        snap.forEach(d => {
+          const o = d.data();
+          const amount = formatCurrency(o.finalPayablePaise || 0);
+
+          html += `
+            <tr>
+              <td><strong>${escapeHtml(o.orderNumber || d.id)}</strong></td>
+              <td>${escapeHtml(o.customerName || o.customerEmail || 'Customer')}</td>
+              <td><strong>${amount}</strong></td>
+              <td>
+                <span class="upi-id-badge" style="font-family: monospace; font-size: 14px; font-weight: 700; color: var(--color-primary);">${escapeHtml(o.utr || 'N/A')}</span>
+                <button class="btn btn-sm btn-secondary copy-utr-btn" data-utr="${escapeHtml(o.utr || '')}" style="margin-left: 6px; padding: 2px 6px;">Copy</button>
+              </td>
+              <td style="font-size: 12px; color: var(--color-text-muted);">
+                ${o.reservationExpiresAt ? formatDateIST(o.reservationExpiresAt) : '24 Hours'}
+              </td>
+              <td>
+                <button class="btn btn-sm btn-primary open-verify-btn" data-id="${d.id}">Review & Action</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+
+        tbody.querySelectorAll('.copy-utr-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const utr = e.currentTarget.getAttribute('data-utr');
+            if (utr) {
+              await copyToClipboard(utr);
+              showToast('UTR copied to clipboard!', 'success');
+            }
+          });
+        });
+
+        tbody.querySelectorAll('.open-verify-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            const docData = snap.docs.find(d => d.id === id)?.data();
+            if (docData) {
+              selectedOrderId = id;
+              selectedOrderData = docData;
+
+              document.getElementById('verify-order-num').textContent = docData.orderNumber || id;
+              document.getElementById('verify-expected-amount').textContent = formatCurrency(docData.finalPayablePaise || 0);
+              document.getElementById('verify-utr-code').textContent = docData.utr || 'N/A';
+              document.getElementById('verify-received-amount').value = ((docData.finalPayablePaise || 0) / 100).toFixed(2);
+              document.getElementById('reject-reason').value = '';
+
+              document.getElementById('verify-modal').style.display = 'flex';
+            }
+          });
+        });
+      } catch (err) {
+        console.error('Error loading payments queue', err);
+      }
+    }
+  </script>
+</body>
+</html>
+

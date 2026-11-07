@@ -1,0 +1,34 @@
+name: Deploy NextBuy 77 to Firebase
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: 'firebase/functions/package-lock.json'
+
+      - name: Install Cloud Functions Dependencies
+        run: |
+          cd firebase/functions
+          npm ci || npm install
+
+      - name: Deploy to Firebase Hosting and Functions
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_NEXTBUY77_A3529 }}'
+          channelId: live
+          projectId: nextbuy77-a3529
+

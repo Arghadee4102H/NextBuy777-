@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /checkout.html
+Disallow: /profile.html
+Disallow: /order-details.html
+
+Allow: /
+Allow: /products.html
+Allow: /product-details.html
+Allow: /terms.html
+Allow: /privacy.html
+Allow: /faq.html
+
+Sitemap: https://nextbuy77.com/sitemap.xml
+

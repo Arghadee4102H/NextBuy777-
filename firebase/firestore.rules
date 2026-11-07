@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
+      );
+    }
+
+    // Publicly readable published products & categories
+    match /products/{productId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /productStats/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /inventory/{productId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || isAuthenticated();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /banners/{bannerId} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /pinCodes/{pinCode} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Public website settings
+    match /websiteSettings/public {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Private payment settings (Strictly Admin only)
+    match /paymentSettings/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Customer Private Documents
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'admin', 'bonusBalancePaise', 'loyaltyPoints']);
+      allow delete: if isAdmin();
+
+      // Customer Saved Addresses Subcollection
+      match /addresses/{addressId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+
+      // Customer Saved Cart
+      match /cart/{cartDoc} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow read: if (isAuthenticated() && resource.data.customerUid == request.auth.uid) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.customerUid == request.auth.uid;
+      allow update: if isAdmin() || (
+        isAuthenticated() && 
+        resource.data.customerUid == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['utr', 'paymentStatus', 'orderStatus', 'reservationExpiresAt', 'statusHistory', 'updatedAt'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // UTR Unique Index
+    match /utrIndex/{utr} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.customerUid == request.auth.uid);
+      allow create: if isAuthenticated() && !exists(/databases/$(database)/documents/utrIndex/$(utr));
+      allow update, delete: if isAdmin();
+    }
+
+    // Inventory Movements Audit
+    match /inventoryMovements/{movId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable audit trail
+    }
+
+    // Promo Codes & Usage
+    match /promoCodes/{codeId} {
+      allow read: if isAuthenticated() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /promoUsage/{usageId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // Admin Users & RBAC
+    match /adminUsers/{uid} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin Activity Audit Logs (Append-Only)
+    match /adminActivityLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Reviews & Feedback
+    match /reviews/{reviewId} {
+      allow read: if resource.data.approved == true || isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+
+    // Default Deny All Other Unmatched Collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

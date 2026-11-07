@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category Management — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html" class="active">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Product Categories</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Organize store catalog hierarchy</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="card-header-row">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Categories List</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Multilingual store categories</span>
+          </div>
+          <button id="add-cat-btn" class="btn btn-primary btn-sm">+ Add New Category</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Category Name (EN / BN / HI)</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="categories-tbody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  Loading categories...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Category Modal -->
+  <div id="cat-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+        <h2 id="cat-modal-title" style="font-size: 20px; margin: 0;">Add New Category</h2>
+        <button id="close-cat-modal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="category-form">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (English) *</label>
+          <input type="text" id="cat-name-en" required class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (বাংলা Bengali)</label>
+            <input type="text" id="cat-name-bn" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (हिन्दी Hindi)</label>
+            <input type="text" id="cat-name-hi" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Display Order</label>
+          <input type="number" id="cat-order" value="1" min="1" class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="cat-active" checked> Active in Storefront
+          </label>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" id="cancel-cat-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { db } from '../js/firebase-config.js';
+    import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { showToast, escapeHtml } from '../js/utils.js';
+
+    let currentCatId = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+      await loadCategories();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+
+      document.getElementById('add-cat-btn').addEventListener('click', () => {
+        currentCatId = null;
+        document.getElementById('cat-modal-title').textContent = 'Add New Category';
+        document.getElementById('category-form').reset();
+        document.getElementById('cat-active').checked = true;
+        document.getElementById('cat-modal').style.display = 'flex';
+      });
+
+      document.getElementById('close-cat-modal').addEventListener('click', () => {
+        document.getElementById('cat-modal').style.display = 'none';
+      });
+      document.getElementById('cancel-cat-btn').addEventListener('click', () => {
+        document.getElementById('cat-modal').style.display = 'none';
+      });
+
+      document.getElementById('category-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          name: {
+            en: document.getElementById('cat-name-en').value.trim(),
+            bn: document.getElementById('cat-name-bn').value.trim(),
+            hi: document.getElementById('cat-name-hi').value.trim()
+          },
+          order: parseInt(document.getElementById('cat-order').value, 10) || 1,
+          active: document.getElementById('cat-active').checked,
+          updatedAt: serverTimestamp()
+        };
+
+        try {
+          if (currentCatId) {
+            await updateDoc(doc(db, 'categories', currentCatId), payload);
+            showToast('Category updated.', 'success');
+          } else {
+            payload.createdAt = serverTimestamp();
+            await addDoc(collection(db, 'categories'), payload);
+            showToast('Category created.', 'success');
+          }
+          document.getElementById('cat-modal').style.display = 'none';
+          await loadCategories();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+    });
+
+    async function loadCategories() {
+      const tbody = document.getElementById('categories-tbody');
+      try {
+        const snap = await getDocs(query(collection(db, 'categories'), orderBy('order', 'asc')));
+        if (snap.empty) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                No categories yet. Click "+ Add New Category" to create categories (e.g. Fashion, Jewellery, Perfumes).
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        let html = '';
+        snap.forEach(d => {
+          const c = d.data();
+          const nameEn = c.name?.en || 'Untitled';
+          const nameBn = c.name?.bn ? ` / ${c.name.bn}` : '';
+          const nameHi = c.name?.hi ? ` / ${c.name.hi}` : '';
+
+          html += `
+            <tr>
+              <td><strong>${c.order || 1}</strong></td>
+              <td><strong>${escapeHtml(nameEn)}</strong><span style="font-size:12px;color:var(--color-text-muted);">${escapeHtml(nameBn + nameHi)}</span></td>
+              <td><span class="status-badge ${c.active ? 'badge-success' : 'badge-danger'}">${c.active ? 'Active' : 'Inactive'}</span></td>
+              <td>
+                <button class="btn btn-sm btn-secondary delete-cat-btn" data-id="${d.id}" style="color: var(--color-danger);">&times; Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+
+        tbody.querySelectorAll('.delete-cat-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            // Section 26: Prevent accidental deletion of categories that contain products
+            const prodsSnap = await getDocs(query(collection(db, 'products'), where('categoryId', '==', id)));
+            if (!prodsSnap.empty) {
+              alert(`Cannot delete this category: ${prodsSnap.size} product(s) are assigned to it. Please reassign those products first.`);
+              return;
+            }
+            if (confirm('Delete this category?')) {
+              await deleteDoc(doc(db, 'categories', id));
+              showToast('Category deleted.', 'info');
+              await loadCategories();
+            }
+          });
+        });
+      } catch (e) {
+        console.error('Error loading categories', e);
+      }
+    }
+  </script>
+</body>
+</html>
+

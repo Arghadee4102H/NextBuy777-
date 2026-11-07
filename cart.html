@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart — NextBuy 77</title>
+  <meta name="description" content="View items in your shopping cart, review order total, and proceed to checkout on NextBuy 77.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="action-btn" data-i18n="nav.home">Home</a>
+        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
+        <a href="profile.html" class="action-btn" id="user-nav-btn">
+          <span>👤</span>
+          <span data-i18n="nav.profile">Account</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main container" style="margin-top: var(--space-8); margin-bottom: var(--space-12);">
+    <h1 style="font-size: var(--font-size-2xl); margin-bottom: var(--space-6); padding-bottom: var(--space-3); border-bottom: 2px solid var(--color-border);" data-i18n="cart.title">
+      Shopping Cart
+    </h1>
+
+    <div id="cart-content-wrapper" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-8);">
+      <!-- Cart Items List -->
+      <div>
+        <div id="cart-items-container">
+          <!-- Dynamically populated or empty state -->
+        </div>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div>
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); position: sticky; top: 96px;">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Order Summary</h2>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+            <span data-i18n="cart.subtotal">Subtotal</span>
+            <strong id="cart-subtotal-text">₹0.00</strong>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+            <span data-i18n="cart.deliveryFee">Delivery Charges</span>
+            <span id="cart-delivery-text">Calculated at checkout</span>
+          </div>
+
+          <div id="discount-row" style="display: none; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: var(--color-success);">
+            <span data-i18n="cart.discount">Discount</span>
+            <strong id="cart-discount-text">-₹0.00</strong>
+          </div>
+
+          <!-- Promo Code Input -->
+          <div style="margin: 16px 0; padding: 12px 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="promo-input" placeholder="Enter Promo Code" class="search-input" style="border-radius: var(--radius-md); text-transform: uppercase;">
+              <button id="apply-promo-btn" class="btn btn-secondary btn-sm">Apply</button>
+            </div>
+            <span id="promo-message" style="display: block; font-size: 12px; margin-top: 6px;"></span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 18px; font-weight: 700; color: var(--color-primary);">
+            <span data-i18n="cart.total">Total</span>
+            <span id="cart-total-text">₹0.00</span>
+          </div>
+
+          <a href="checkout.html" id="checkout-btn" class="btn btn-primary btn-block" style="font-size: 16px;" data-i18n="cart.proceedToCheckout">
+            Proceed to Checkout
+          </a>
+
+          <div style="text-align: center; margin-top: 16px;">
+            <a href="products.html" style="font-size: 13px; color: var(--color-text-muted);" data-i18n="cart.continueShopping">
+              &larr; Continue Shopping
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3 class="footer-brand-title">NextBuy 77</h3>
+          <p class="footer-brand-tagline" data-i18n="brand.tagline">Buy Next. Buy Better.</p>
+          <p style="font-size: 14px; opacity: 0.85;" data-i18n="footer.aboutText">
+            NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.quickLinks">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+            <li><a href="products.html" data-i18n="nav.products">Products</a></li>
+            <li><a href="cart.html" data-i18n="nav.cart">Cart</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.legal">Legal</h4>
+          <ul class="footer-links">
+            <li><a href="terms.html" data-i18n="footer.terms">Terms & Conditions</a></li>
+            <li><a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title">Official Contact</h4>
+          <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
+          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { cartManager } from './js/cart.js';
+    import { formatCurrency, escapeHtml, showToast } from './js/utils.js';
+    import { calculateOrderTotals } from './js/pricing-engine.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+      securityDeterrents.init();
+
+      renderCart();
+
+      window.addEventListener('cartUpdated', () => {
+        renderCart();
+      });
+    });
+
+    function renderCart() {
+      const container = document.getElementById('cart-items-container');
+      const items = cartManager.getItems();
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 48px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🛒</div>
+            <h2 style="font-size: 20px; margin-bottom: 8px;" data-i18n="cart.empty">${i18n.t('cart.empty')}</h2>
+            <p style="font-size: 14px; color: var(--color-text-muted); margin-bottom: 24px;">Browse our catalog and discover exciting new arrivals.</p>
+            <a href="products.html" class="btn btn-primary" data-i18n="cart.continueShopping">${i18n.t('cart.continueShopping')}</a>
+          </div>
+        `;
+        document.getElementById('checkout-btn').style.pointerEvents = 'none';
+        document.getElementById('checkout-btn').style.opacity = '0.5';
+        updateSummary(0);
+        return;
+      }
+
+      document.getElementById('checkout-btn').style.pointerEvents = 'auto';
+      document.getElementById('checkout-btn').style.opacity = '1';
+
+      let html = '';
+      items.forEach(item => {
+        const title = typeof item.name === 'object' ? (item.name[i18n.currentLanguage] || item.name['en']) : item.name;
+        const lineTotal = formatCurrency((item.pricePaise || 0) * (item.quantity || 1));
+
+        html += `
+          <div style="display: flex; gap: 16px; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; align-items: center; flex-wrap: wrap;">
+            <img src="${escapeHtml(item.image || '/assets/images/logo.jpeg')}" alt="${escapeHtml(title)}" style="width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
+            <div style="flex: 1; min-width: 180px;">
+              <h3 style="font-size: 15px; margin-bottom: 4px;">${escapeHtml(title)}</h3>
+              <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 0;">${formatCurrency(item.pricePaise)} each</p>
+              ${item.variant ? `<span style="font-size: 12px; color: var(--color-accent);">${escapeHtml(item.variant.name || '')}</span>` : ''}
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="btn btn-sm btn-secondary qty-minus-btn" data-key="${item.cartKey}">-</button>
+              <span style="font-weight: 600; min-width: 24px; text-align: center;">${item.quantity}</span>
+              <button class="btn btn-sm btn-secondary qty-plus-btn" data-key="${item.cartKey}">+</button>
+            </div>
+            <div style="min-width: 90px; text-align: right;">
+              <strong style="color: var(--color-primary); font-size: 15px;">${lineTotal}</strong>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-secondary remove-item-btn" data-key="${item.cartKey}" title="Remove item" style="color: var(--color-danger);">&times;</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      // Event listeners for quantity and delete
+      container.querySelectorAll('.qty-minus-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const key = e.currentTarget.getAttribute('data-key');
+          const item = items.find(i => i.cartKey === key);
+          if (item) cartManager.updateQuantity(key, item.quantity - 1);
+        });
+      });
+
+      container.querySelectorAll('.qty-plus-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const key = e.currentTarget.getAttribute('data-key');
+          const item = items.find(i => i.cartKey === key);
+          if (item) cartManager.updateQuantity(key, item.quantity + 1);
+        });
+      });
+
+      container.querySelectorAll('.remove-item-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const key = e.currentTarget.getAttribute('data-key');
+          cartManager.removeItem(key);
+        });
+      });
+
+      const totals = calculateOrderTotals({ items });
+      updateSummary(totals.subtotalPaise);
+    }
+
+    function updateSummary(subtotalPaise) {
+      document.getElementById('cart-subtotal-text').textContent = formatCurrency(subtotalPaise);
+      document.getElementById('cart-total-text').textContent = formatCurrency(subtotalPaise);
+    }
+  </script>
+</body>
+</html>
+

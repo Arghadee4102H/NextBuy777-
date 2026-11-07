@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — NextBuy 77</title>
+  <meta name="description" content="Sign in securely to your NextBuy 77 account with Google.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="action-btn" data-i18n="nav.home">Home</a>
+        <a href="cart.html" class="action-btn">
+          <span>🛒</span>
+          <span data-i18n="nav.cart">Cart</span>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main container" style="margin-top: var(--space-12); max-width: 480px;">
+    <!-- In-App Browser Warning Alert -->
+    <div id="inapp-warning" style="display: none; background: var(--color-warning-bg); border: 1px solid var(--color-warning); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-6); font-size: 14px; color: var(--color-warning);">
+      ⚠️ <strong>In-App Browser Detected:</strong> Google Sign-In is often blocked inside Instagram, Facebook, or WhatsApp. Please tap <strong>&vellip;</strong> and select <strong>"Open in Chrome"</strong> or <strong>"Open in Safari"</strong>.
+    </div>
+
+    <!-- Sign In Card -->
+    <div id="signin-card" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-md); text-align: center;">
+      <h1 style="font-size: var(--font-size-2xl); margin-bottom: 8px;">Customer Sign In</h1>
+      <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-6);">
+        Sign in with your Google account to access your saved addresses, track orders, and complete checkout.
+      </p>
+
+      <button id="google-signin-btn" class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; padding: 12px 16px; border-color: var(--color-border);">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <p style="font-size: 12px; color: var(--color-text-light); margin-top: var(--space-6);">
+        By signing in, you agree to our <a href="terms.html">Terms & Conditions</a> and <a href="privacy.html">Privacy Policy</a>.
+      </p>
+    </div>
+
+    <!-- Complete Profile Form (Shown if mobile number is missing) -->
+    <div id="complete-profile-card" style="display: none; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-md);">
+      <h2 style="font-size: var(--font-size-xl); margin-bottom: 8px;">Complete Your Profile</h2>
+      <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-6);">
+        Please provide your contact number for order updates and delivery notifications.
+      </p>
+
+      <form id="profile-completion-form">
+        <div style="margin-bottom: 16px;">
+          <label for="first-name-input" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">First Name</label>
+          <input type="text" id="first-name-input" required class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="margin-bottom: 16px;">
+          <label for="last-name-input" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Last Name</label>
+          <input type="text" id="last-name-input" class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label for="mobile-input" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Mobile Number (10 Digits)</label>
+          <input type="tel" id="mobile-input" required pattern="[6-9][0-9]{9}" placeholder="e.g. 9876543210" class="search-input" style="border-radius: var(--radius-md);">
+          <span style="font-size: 11px; color: var(--color-text-muted);">Required for SMS / Delivery coordination</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Save Profile & Continue</button>
+      </form>
+    </div>
+  </main>
+
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { cartManager } from './js/cart.js';
+    import { signInWithGoogle, checkRedirectAuthResult, detectInAppBrowser, saveCustomerProfile } from './js/firebase-auth.js';
+    import { auth, db } from './js/firebase-config.js';
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { showToast } from './js/utils.js';
+
+    let activeUser = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+      securityDeterrents.init();
+      cartManager.updateCartBadge();
+
+      if (detectInAppBrowser()) {
+        document.getElementById('inapp-warning').style.display = 'block';
+      }
+
+      await checkRedirectAuthResult();
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          activeUser = user;
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const profile = userDoc.data();
+
+          if (!profile || !profile.mobile) {
+            // Need profile completion
+            document.getElementById('signin-card').style.display = 'none';
+            document.getElementById('complete-profile-card').style.display = 'block';
+            if (profile) {
+              document.getElementById('first-name-input').value = profile.firstName || '';
+              document.getElementById('last-name-input').value = profile.lastName || '';
+            }
+          } else {
+            // Already complete, navigate
+            const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/profile.html';
+            window.location.href = redirectUrl;
+          }
+        }
+      });
+
+      document.getElementById('google-signin-btn').addEventListener('click', async () => {
+        await signInWithGoogle();
+      });
+
+      document.getElementById('profile-completion-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!activeUser) return;
+
+        const firstName = document.getElementById('first-name-input').value;
+        const lastName = document.getElementById('last-name-input').value;
+        const mobile = document.getElementById('mobile-input').value;
+
+        try {
+          await saveCustomerProfile(activeUser.uid, { firstName, lastName, mobile });
+          const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/profile.html';
+          window.location.href = redirectUrl;
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

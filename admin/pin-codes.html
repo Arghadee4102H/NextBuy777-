@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIN Code Management — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html" class="active">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">PIN Code Delivery Management</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Manage serviceable locations and custom delivery rates</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-card">
+        <div class="card-header-row">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Serviceable Indian PIN Codes</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Authoritative delivery check for customer checkout</span>
+          </div>
+          <button id="add-pin-btn" class="btn btn-primary btn-sm">+ Add PIN Code</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>PIN Code</th>
+                <th>District & State</th>
+                <th>Delivery Charge</th>
+                <th>Additional Surcharge</th>
+                <th>Service Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="pincodes-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  Loading PIN codes...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- PIN Modal -->
+  <div id="pin-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+        <h2 style="font-size: 20px; margin: 0;">Add Serviceable PIN Code</h2>
+        <button id="close-pin-modal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="pin-form">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">6-digit Indian PIN Code *</label>
+          <input type="text" id="pin-input" required pattern="[1-9][0-9]{5}" maxlength="6" class="search-input" style="border-radius: var(--radius-md);" placeholder="e.g. 700001">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">District *</label>
+            <input type="text" id="pin-district" required class="search-input" style="border-radius: var(--radius-md);" placeholder="e.g. Kolkata">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">State *</label>
+            <input type="text" id="pin-state" required class="search-input" style="border-radius: var(--radius-md);" placeholder="e.g. West Bengal">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Base Delivery Charge (₹)</label>
+            <input type="number" id="pin-charge" step="0.01" min="0" value="50" required class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Additional Surcharge (₹)</label>
+            <input type="number" id="pin-additional" step="0.01" min="0" value="0" class="search-input" style="border-radius: var(--radius-md);">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; cursor: pointer;">
+            <input type="checkbox" id="pin-active" checked> Serviceable (Active)
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" id="cancel-pin-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save PIN Code</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { db } from '../js/firebase-config.js';
+    import { collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { formatCurrency, showToast, validatePinCode, escapeHtml } from '../js/utils.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+      await loadPins();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+
+      document.getElementById('add-pin-btn').addEventListener('click', () => {
+        document.getElementById('pin-form').reset();
+        document.getElementById('pin-active').checked = true;
+        document.getElementById('pin-modal').style.display = 'flex';
+      });
+
+      document.getElementById('close-pin-modal').addEventListener('click', () => {
+        document.getElementById('pin-modal').style.display = 'none';
+      });
+      document.getElementById('cancel-pin-btn').addEventListener('click', () => {
+        document.getElementById('pin-modal').style.display = 'none';
+      });
+
+      document.getElementById('pin-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pinCode = document.getElementById('pin-input').value.trim();
+
+        if (!validatePinCode(pinCode)) {
+          showToast('Please enter a valid 6-digit Indian PIN Code.', 'danger');
+          return;
+        }
+
+        const chargeRupees = parseFloat(document.getElementById('pin-charge').value) || 0;
+        const addRupees = parseFloat(document.getElementById('pin-additional').value) || 0;
+
+        const payload = {
+          pinCode,
+          district: document.getElementById('pin-district').value.trim(),
+          state: document.getElementById('pin-state').value.trim(),
+          chargePaise: Math.round(chargeRupees * 100),
+          additionalChargePaise: Math.round(addRupees * 100),
+          active: document.getElementById('pin-active').checked,
+          updatedAt: serverTimestamp()
+        };
+
+        try {
+          await setDoc(doc(db, 'pinCodes', pinCode), payload);
+          showToast(`PIN Code ${pinCode} saved!`, 'success');
+          document.getElementById('pin-modal').style.display = 'none';
+          await loadPins();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+    });
+
+    async function loadPins() {
+      const tbody = document.getElementById('pincodes-tbody');
+      try {
+        const snap = await getDocs(collection(db, 'pinCodes'));
+        if (snap.empty) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                No custom PIN codes entered yet. The store currently uses the global delivery policy. Click "+ Add PIN Code" to add specific rates.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        let html = '';
+        snap.forEach(d => {
+          const p = d.data();
+          html += `
+            <tr>
+              <td><strong class="upi-id-badge" style="font-size: 15px;">${escapeHtml(p.pinCode || d.id)}</strong></td>
+              <td>${escapeHtml(p.district || '')}, ${escapeHtml(p.state || '')}</td>
+              <td><strong>${formatCurrency(p.chargePaise || 0)}</strong></td>
+              <td>${p.additionalChargePaise ? formatCurrency(p.additionalChargePaise) : '₹0.00'}</td>
+              <td>
+                <span class="status-badge ${p.active !== false ? 'badge-success' : 'badge-danger'}">
+                  ${p.active !== false ? 'Serviceable' : 'Blocked'}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-secondary delete-pin-btn" data-id="${d.id}" style="color: var(--color-danger);">&times; Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+
+        tbody.querySelectorAll('.delete-pin-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            if (confirm(`Delete PIN code ${id}?`)) {
+              await deleteDoc(doc(db, 'pinCodes', id));
+              showToast('PIN code removed.', 'info');
+              await loadPins();
+            }
+          });
+        });
+      } catch (err) {
+        console.error('Error loading pin codes', err);
+      }
+    }
+  </script>
+</body>
+</html>
+

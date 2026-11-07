@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Profile — NextBuy 77</title>
+  <meta name="description" content="Manage your personal details, delivery addresses, and track your orders on NextBuy 77.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/anti-copy.css">
+</head>
+<body>
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top-content">
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+        <div class="lang-selector-wrap">
+          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
+          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+            <option value="en">English</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="container header-main">
+      <div class="brand-logo-wrap">
+        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+          <div class="brand-text">
+            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-tagline">Buy Next. Buy Better.</span>
+          </div>
+        </a>
+      </div>
+      <div class="header-actions">
+        <a href="index.html" class="action-btn" data-i18n="nav.home">Home</a>
+        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
+        <a href="cart.html" class="action-btn">
+          <span>🛒</span>
+          <span data-i18n="nav.cart">Cart</span>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="site-main container" style="margin-top: var(--space-8); margin-bottom: var(--space-12);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); padding-bottom: var(--space-3); border-bottom: 2px solid var(--color-border); flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h1 style="font-size: var(--font-size-2xl); margin-bottom: 4px;" data-i18n="nav.profile">My Account</h1>
+        <p style="font-size: 14px; color: var(--color-text-muted);" id="user-greeting">Welcome to NextBuy 77</p>
+      </div>
+      <button id="signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+    </div>
+
+    <!-- Stats Bar -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-8);">
+      <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); padding: 16px; border-radius: var(--radius-md);">
+        <span style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase;">Bonus Balance</span>
+        <h3 id="stat-bonus-balance" style="margin-top: 4px; font-size: 1.5rem; color: var(--color-primary);">₹0.00</h3>
+      </div>
+      <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); padding: 16px; border-radius: var(--radius-md);">
+        <span style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase;">Loyalty Points</span>
+        <h3 id="stat-loyalty-points" style="margin-top: 4px; font-size: 1.5rem; color: var(--color-accent);">0 pts</h3>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8);">
+      <!-- Column 1: Personal Info & Add Address -->
+      <div>
+        <!-- Personal Information Card -->
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-8); box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Personal Information</h2>
+          <form id="personal-info-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label for="profile-first-name" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">First Name</label>
+                <input type="text" id="profile-first-name" class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div>
+                <label for="profile-last-name" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Last Name</label>
+                <input type="text" id="profile-last-name" class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="profile-email" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Verified Email (Uneditable)</label>
+              <input type="email" id="profile-email" disabled class="search-input" style="border-radius: var(--radius-md); background: var(--color-bg-subtle);">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="profile-mobile" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Mobile Number</label>
+              <input type="tel" id="profile-mobile" class="search-input" placeholder="10-digit mobile" style="border-radius: var(--radius-md);">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label for="profile-dob" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Date of Birth (Birthday Bonus)</label>
+              <input type="date" id="profile-dob" class="search-input" style="border-radius: var(--radius-md);">
+              <span id="dob-lock-msg" class="hidden" style="font-size: 11px; color: var(--color-text-muted);">DOB is locked once entered.</span>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+          </form>
+        </div>
+
+        <!-- Add New Delivery Address Card -->
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Add New Delivery Address</h2>
+          <form id="add-address-form">
+            <div style="margin-bottom: 12px;">
+              <label for="addr-fullname" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Full Name</label>
+              <input type="text" id="addr-fullname" required class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="addr-mobile" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Contact Mobile</label>
+              <input type="tel" id="addr-mobile" required pattern="[6-9][0-9]{9}" placeholder="10-digit mobile" class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="addr-house" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">House / Flat / Building</label>
+              <input type="text" id="addr-house" required class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="addr-street" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Street / Locality</label>
+              <input type="text" id="addr-street" required class="search-input" style="border-radius: var(--radius-md);">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <label for="addr-city" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">City / Village</label>
+                <input type="text" id="addr-city" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div>
+                <label for="addr-pincode" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">PIN Code (6 Digits)</label>
+                <input type="text" id="addr-pincode" required pattern="[1-9][0-9]{5}" maxlength="6" placeholder="e.g. 700001" class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+              <div>
+                <label for="addr-district" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">District</label>
+                <input type="text" id="addr-district" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+              <div>
+                <label for="addr-state" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">State</label>
+                <input type="text" id="addr-state" required class="search-input" style="border-radius: var(--radius-md);">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-block">Save Address</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Column 2: Saved Addresses & Order History -->
+      <div>
+        <!-- Saved Addresses List -->
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-8); box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Saved Delivery Addresses</h2>
+          <div id="addresses-list">
+            <p style="color: var(--color-text-muted); font-size: 14px;">Loading addresses...</p>
+          </div>
+        </div>
+
+        <!-- Order History List -->
+        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Recent Orders</h2>
+          <div id="orders-list">
+            <p style="color: var(--color-text-muted); font-size: 14px;">Loading order history...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h3 class="footer-brand-title">NextBuy 77</h3>
+          <p class="footer-brand-tagline" data-i18n="brand.tagline">Buy Next. Buy Better.</p>
+          <p style="font-size: 14px; opacity: 0.85;" data-i18n="footer.aboutText">
+            NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.quickLinks">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+            <li><a href="products.html" data-i18n="nav.products">Products</a></li>
+            <li><a href="cart.html" data-i18n="nav.cart">Cart</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title" data-i18n="footer.legal">Legal</h4>
+          <ul class="footer-links">
+            <li><a href="terms.html" data-i18n="footer.terms">Terms & Conditions</a></li>
+            <li><a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+            <li><a href="faq.html" data-i18n="footer.faqs">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer-col-title">Official Contact</h4>
+          <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
+          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { i18n } from './js/i18n.js';
+    import { securityDeterrents } from './js/security-deterrents.js';
+    import { cartManager } from './js/cart.js';
+    import { auth } from './js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { profileController } from './js/profile.js';
+    import { customerSignOut } from './js/firebase-auth.js';
+    import { showToast } from './js/utils.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await i18n.init();
+      securityDeterrents.init();
+      cartManager.updateCartBadge();
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          window.location.href = 'login.html?redirect=/profile.html';
+          return;
+        }
+
+        document.getElementById('user-greeting').textContent = `Signed in as ${user.email}`;
+        await profileController.init(user);
+      });
+
+      // Sign out action
+      document.getElementById('signout-btn').addEventListener('click', async () => {
+        await customerSignOut();
+      });
+
+      // Personal Details Form Submit
+      document.getElementById('personal-info-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const firstName = document.getElementById('profile-first-name').value;
+        const lastName = document.getElementById('profile-last-name').value;
+        const mobile = document.getElementById('profile-mobile').value;
+        const dob = document.getElementById('profile-dob').value;
+
+        await profileController.updatePersonalDetails({ firstName, lastName, mobile, dateOfBirth: dob });
+      });
+
+      // Add Address Form Submit
+      document.getElementById('add-address-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const addressData = {
+          fullName: document.getElementById('addr-fullname').value,
+          mobile: document.getElementById('addr-mobile').value,
+          houseBuilding: document.getElementById('addr-house').value,
+          streetLocality: document.getElementById('addr-street').value,
+          cityVillage: document.getElementById('addr-city').value,
+          pinCode: document.getElementById('addr-pincode').value,
+          district: document.getElementById('addr-district').value,
+          state: document.getElementById('addr-state').value
+        };
+
+        try {
+          await profileController.saveAddress(addressData);
+          document.getElementById('add-address-form').reset();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
