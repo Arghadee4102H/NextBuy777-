@@ -7,8 +7,8 @@ const path = require('path');
 
 async function main() {
   const args = process.argv.slice(2);
-  const email = args[0] || 'admin@nextbuy77.com';
-  const password = args[1] || 'Admin@NextBuy77!2026';
+  const email = args[0] || 'arghadeepg2006@gmail.com';
+  const password = args[1] || 'Art454500@';
 
   console.log('--- NextBuy 77 Super Admin Provisioning ---');
   console.log(`Target Email: ${email}`);

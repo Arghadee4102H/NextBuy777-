@@ -50,7 +50,7 @@
       Shopping Cart
     </h1>
 
-    <div id="cart-content-wrapper" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-8);">
+    <div id="cart-content-wrapper" class="cart-layout-grid">
       <!-- Cart Items List -->
       <div>
         <div id="cart-items-container">
@@ -60,7 +60,7 @@
 
       <!-- Order Summary Card -->
       <div>
-        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); position: sticky; top: 96px;">
+        <div class="order-summary-sidebar">
           <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Order Summary</h2>
 
           <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
@@ -137,7 +137,7 @@
         <div>
           <h4 class="footer-col-title">Official Contact</h4>
           <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
-          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
+          <p style="font-size: 13px; opacity: 0.75;">Buy Next. Buy Better.</p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -153,10 +153,25 @@
     import { cartManager } from './js/cart.js';
     import { formatCurrency, escapeHtml, showToast } from './js/utils.js';
     import { calculateOrderTotals } from './js/pricing-engine.js';
+    import { auth } from './js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
       securityDeterrents.init();
+
+      onAuthStateChanged(auth, (user) => {
+        const userBtn = document.getElementById('user-nav-btn');
+        if (userBtn) {
+          if (user) {
+            userBtn.innerHTML = `<span>👤</span> <span>${user.displayName ? user.displayName.split(' ')[0] : 'Profile'}</span>`;
+            userBtn.href = 'profile.html';
+          } else {
+            userBtn.innerHTML = `<span>👤</span> <span data-i18n="nav.login">${i18n.t('nav.login')}</span>`;
+            userBtn.href = 'login.html?redirect=cart.html';
+          }
+        }
+      });
 
       renderCart();
 
@@ -193,23 +208,25 @@
         const lineTotal = formatCurrency((item.pricePaise || 0) * (item.quantity || 1));
 
         html += `
-          <div style="display: flex; gap: 16px; background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; align-items: center; flex-wrap: wrap;">
-            <img src="${escapeHtml(item.image || '/assets/images/logo.jpeg')}" alt="${escapeHtml(title)}" style="width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
-            <div style="flex: 1; min-width: 180px;">
+          <div class="cart-item-card">
+            <img src="${escapeHtml(item.image || 'assets/images/logo.jpeg')}" alt="${escapeHtml(title)}" class="cart-item-img" style="width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
+            <div class="cart-item-body" style="flex: 1; min-width: 160px;">
               <h3 style="font-size: 15px; margin-bottom: 4px;">${escapeHtml(title)}</h3>
               <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 0;">${formatCurrency(item.pricePaise)} each</p>
               ${item.variant ? `<span style="font-size: 12px; color: var(--color-accent);">${escapeHtml(item.variant.name || '')}</span>` : ''}
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <button class="btn btn-sm btn-secondary qty-minus-btn" data-key="${item.cartKey}">-</button>
-              <span style="font-weight: 600; min-width: 24px; text-align: center;">${item.quantity}</span>
-              <button class="btn btn-sm btn-secondary qty-plus-btn" data-key="${item.cartKey}">+</button>
-            </div>
-            <div style="min-width: 90px; text-align: right;">
-              <strong style="color: var(--color-primary); font-size: 15px;">${lineTotal}</strong>
-            </div>
-            <div>
-              <button class="btn btn-sm btn-secondary remove-item-btn" data-key="${item.cartKey}" title="Remove item" style="color: var(--color-danger);">&times;</button>
+            <div class="cart-item-controls">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="btn btn-sm btn-secondary qty-minus-btn" data-key="${item.cartKey}">-</button>
+                <span style="font-weight: 600; min-width: 24px; text-align: center;">${item.quantity}</span>
+                <button class="btn btn-sm btn-secondary qty-plus-btn" data-key="${item.cartKey}">+</button>
+              </div>
+              <div style="min-width: 90px; text-align: right;">
+                <strong style="color: var(--color-primary); font-size: 15px;">${lineTotal}</strong>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-secondary remove-item-btn" data-key="${item.cartKey}" title="Remove item" style="color: var(--color-danger);">&times;</button>
+              </div>
             </div>
           </div>
         `;

@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8);">
+    <div class="profile-layout-grid">
       <!-- Column 1: Personal Info & Add Address -->
       <div>
         <!-- Personal Information Card -->
@@ -198,7 +198,6 @@
         <div>
           <h4 class="footer-col-title">Official Contact</h4>
           <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
-          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -225,7 +224,7 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (!user) {
-          window.location.href = 'login.html?redirect=/profile.html';
+          window.location.href = 'login.html?redirect=profile.html';
           return;
         }
 
@@ -241,9 +240,9 @@
       // Personal Details Form Submit
       document.getElementById('personal-info-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const firstName = document.getElementById('profile-first-name').value;
-        const lastName = document.getElementById('profile-last-name').value;
-        const mobile = document.getElementById('profile-mobile').value;
+        const firstName = document.getElementById('profile-first-name').value.trim();
+        const lastName = document.getElementById('profile-last-name').value.trim();
+        const mobile = document.getElementById('profile-mobile').value.trim();
         const dob = document.getElementById('profile-dob').value;
 
         await profileController.updatePersonalDetails({ firstName, lastName, mobile, dateOfBirth: dob });
@@ -253,14 +252,14 @@
       document.getElementById('add-address-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const addressData = {
-          fullName: document.getElementById('addr-fullname').value,
-          mobile: document.getElementById('addr-mobile').value,
-          houseBuilding: document.getElementById('addr-house').value,
-          streetLocality: document.getElementById('addr-street').value,
-          cityVillage: document.getElementById('addr-city').value,
-          pinCode: document.getElementById('addr-pincode').value,
-          district: document.getElementById('addr-district').value,
-          state: document.getElementById('addr-state').value
+          fullName: document.getElementById('addr-fullname').value.trim(),
+          mobile: document.getElementById('addr-mobile').value.trim(),
+          houseBuilding: document.getElementById('addr-house').value.trim(),
+          streetLocality: document.getElementById('addr-street').value.trim(),
+          cityVillage: document.getElementById('addr-city').value.trim(),
+          pinCode: document.getElementById('addr-pincode').value.trim(),
+          district: document.getElementById('addr-district').value.trim(),
+          state: document.getElementById('addr-state').value.trim()
         };
 
         try {

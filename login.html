@@ -111,10 +111,36 @@
 
     let activeUser = null;
 
+    function getSafeRedirectUrl() {
+      const params = new URLSearchParams(window.location.search);
+      let redirect = params.get('redirect') || sessionStorage.getItem('nextbuy_redirect') || 'index.html';
+      sessionStorage.removeItem('nextbuy_redirect');
+
+      // Strip leading slashes to stay within relative GitHub Pages / domain root
+      redirect = redirect.replace(/^\/+/, '');
+
+      if (!redirect || redirect === '/') {
+        redirect = 'index.html';
+      }
+
+      // Prevent open redirect to external protocols
+      if (redirect.includes('://') || redirect.startsWith('//')) {
+        redirect = 'index.html';
+      }
+
+      return redirect;
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
       securityDeterrents.init();
       cartManager.updateCartBadge();
+
+      // Remember redirect parameter in case of OAuth redirect
+      const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
+      if (urlRedirect) {
+        sessionStorage.setItem('nextbuy_redirect', urlRedirect);
+      }
 
       if (detectInAppBrowser()) {
         document.getElementById('inapp-warning').style.display = 'block';
@@ -137,14 +163,17 @@
               document.getElementById('last-name-input').value = profile.lastName || '';
             }
           } else {
-            // Already complete, navigate
-            const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/profile.html';
-            window.location.href = redirectUrl;
+            // Already complete, navigate to target section
+            window.location.href = getSafeRedirectUrl();
           }
         }
       });
 
       document.getElementById('google-signin-btn').addEventListener('click', async () => {
+        const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
+        if (urlRedirect) {
+          sessionStorage.setItem('nextbuy_redirect', urlRedirect);
+        }
         await signInWithGoogle();
       });
 
@@ -152,14 +181,13 @@
         e.preventDefault();
         if (!activeUser) return;
 
-        const firstName = document.getElementById('first-name-input').value;
-        const lastName = document.getElementById('last-name-input').value;
-        const mobile = document.getElementById('mobile-input').value;
+        const firstName = document.getElementById('first-name-input').value.trim();
+        const lastName = document.getElementById('last-name-input').value.trim();
+        const mobile = document.getElementById('mobile-input').value.trim();
 
         try {
           await saveCustomerProfile(activeUser.uid, { firstName, lastName, mobile });
-          const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/profile.html';
-          window.location.href = redirectUrl;
+          window.location.href = getSafeRedirectUrl();
         } catch (err) {
           showToast(err.message, 'danger');
         }

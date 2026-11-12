@@ -114,7 +114,6 @@
         <div>
           <h4 class="footer-col-title">Official Contact</h4>
           <p style="font-size: 14px; opacity: 0.85; margin-bottom: 8px;">UPI ID: <strong>9433204168@slc</strong></p>
-          <p style="font-size: 14px; opacity: 0.85;"><a href="admin/index.html" style="color: var(--color-secondary); font-weight:600;" data-i18n="nav.admin">Admin Panel</a></p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -175,7 +174,7 @@
             userBtn.href = 'profile.html';
           } else {
             userBtn.innerHTML = `<span>👤</span> <span data-i18n="nav.login">${i18n.t('nav.login')}</span>`;
-            userBtn.href = 'login.html';
+            userBtn.href = 'login.html?redirect=products.html';
           }
         }
       });

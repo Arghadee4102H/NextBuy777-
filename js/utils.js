@@ -112,7 +112,7 @@ export function validatePinCode(pin) {
  */
 export function validateIndianMobile(mobile) {
   if (!mobile) return false;
-  const cleaned = mobile.toString().trim().replace(/^(?:\+91|91|0)/, '');
+  const cleaned = mobile.toString().trim().replace(/[\s\-\(\)]/g, '').replace(/^(?:\+91|91|0)/, '');
   return /^[6-9]\d{9}$/.test(cleaned);
 }
 

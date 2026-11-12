@@ -2,10 +2,11 @@
 import { auth, db } from '../../js/firebase-config.js';
 import { 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { showToast } from '../../js/utils.js';
 
 class AdminAuthManager {
@@ -17,8 +18,25 @@ class AdminAuthManager {
   }
 
   async login(email, password) {
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+      let cred;
+      try {
+        cred = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      } catch (signInErr) {
+        // If designated super admin account does not exist yet in Firebase Auth, auto-create it
+        if ((signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') &&
+            normalizedEmail === 'arghadeepg2006@gmail.com') {
+          try {
+            cred = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+          } catch (createErr) {
+            throw signInErr; // Rethrow original if creation fails (e.g. wrong password on existing account)
+          }
+        } else {
+          throw signInErr;
+        }
+      }
+
       const isAuthorized = await this.verifyAdminAccess(cred.user);
       if (!isAuthorized) {
         await signOut(auth);
@@ -33,6 +51,35 @@ class AdminAuthManager {
   async verifyAdminAccess(user) {
     if (!user) return false;
     try {
+      // Auto-bootstrap designated super admin
+      if (user.email && user.email.toLowerCase() === 'arghadeepg2006@gmail.com') {
+        const adminRef = doc(db, 'adminUsers', user.uid);
+        const adminDoc = await getDoc(adminRef);
+        if (!adminDoc.exists()) {
+          try {
+            await setDoc(adminRef, {
+              uid: user.uid,
+              email: user.email,
+              displayName: 'Super Admin',
+              role: 'Super Admin',
+              status: 'active',
+              permissions: ['ALL'],
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } catch (e) {
+            console.warn('Bootstrap adminUsers record notice:', e);
+          }
+        }
+        this.adminData = {
+          role: 'Super Admin',
+          permissions: ['ALL'],
+          displayName: 'Super Admin',
+          status: 'active'
+        };
+        return true;
+      }
+
       // 1. Check custom claim token
       const idTokenResult = await user.getIdTokenResult(true);
       if (idTokenResult.claims.admin) {

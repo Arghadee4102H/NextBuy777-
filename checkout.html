@@ -44,7 +44,7 @@
     <!-- PIN Availability Alert (Section 11) -->
     <div id="pin-availability-alert" style="display: none; margin-bottom: var(--space-6); padding: 12px 16px; border-radius: var(--radius-md);"></div>
 
-    <div style="display: grid; grid-template-columns: 1.8fr 1.2fr; gap: var(--space-8);">
+    <div class="checkout-layout-grid">
       <!-- Left Column: Delivery Address & Payment Method -->
       <div>
         <!-- Step 1: Delivery Address -->
@@ -140,7 +140,7 @@
 
       <!-- Right Column: Order Summary & Place Order -->
       <div>
-        <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); position: sticky; top: 96px;">
+        <div class="order-summary-sidebar">
           <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;" data-i18n="checkout.orderSummary">Order Summary</h2>
 
           <!-- Items list -->
@@ -204,9 +204,10 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (!user) {
-          window.location.href = 'login.html?redirect=/checkout.html';
+          window.location.href = 'login.html?redirect=checkout.html';
           return;
         }
+        await profileController.init(user);
         await checkoutController.init(user);
       });
 
@@ -263,20 +264,23 @@
       document.getElementById('checkout-new-address-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {
-          fullName: document.getElementById('new-addr-name').value,
-          mobile: document.getElementById('new-addr-mobile').value,
-          houseBuilding: document.getElementById('new-addr-house').value,
-          streetLocality: document.getElementById('new-addr-street').value,
-          cityVillage: document.getElementById('new-addr-city').value,
-          pinCode: document.getElementById('new-addr-pin').value,
-          district: document.getElementById('new-addr-district').value,
-          state: document.getElementById('new-addr-state').value
+          fullName: document.getElementById('new-addr-name').value.trim(),
+          mobile: document.getElementById('new-addr-mobile').value.trim(),
+          houseBuilding: document.getElementById('new-addr-house').value.trim(),
+          streetLocality: document.getElementById('new-addr-street').value.trim(),
+          cityVillage: document.getElementById('new-addr-city').value.trim(),
+          pinCode: document.getElementById('new-addr-pin').value.trim(),
+          district: document.getElementById('new-addr-district').value.trim(),
+          state: document.getElementById('new-addr-state').value.trim()
         };
 
         try {
-          await profileController.saveAddress(data);
+          const saved = await profileController.saveAddress(data);
           document.getElementById('checkout-new-address-form').reset();
           await checkoutController.loadAddresses();
+          if (saved && saved.id) {
+            await checkoutController.selectAddress(saved);
+          }
         } catch (err) {
           showToast(err.message, 'danger');
         }

@@ -31,9 +31,11 @@ class ProfileController {
   }
 
   async loadProfile() {
-    if (!this.currentUser) return;
+    const user = this.currentUser || auth.currentUser;
+    if (!user) return;
+    this.currentUser = user;
     try {
-      const userRef = doc(db, 'users', this.currentUser.uid);
+      const userRef = doc(db, 'users', user.uid);
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         this.profileData = snap.data();
@@ -74,9 +76,11 @@ class ProfileController {
   }
 
   async updatePersonalDetails(formData) {
-    if (!this.currentUser) return;
+    const user = this.currentUser || auth.currentUser;
+    if (!user) return;
+    this.currentUser = user;
     try {
-      await saveCustomerProfile(this.currentUser.uid, formData);
+      await saveCustomerProfile(user.uid, formData);
       await this.loadProfile();
     } catch (err) {
       showToast(err.message, 'danger');
@@ -86,12 +90,14 @@ class ProfileController {
   // --- Saved Addresses Subcollection Management ---
 
   async loadAddresses() {
-    if (!this.currentUser) return;
+    const user = this.currentUser || auth.currentUser;
+    if (!user) return;
+    this.currentUser = user;
     const container = document.getElementById('addresses-list');
     if (!container) return;
 
     try {
-      const addrRef = collection(db, 'users', this.currentUser.uid, 'addresses');
+      const addrRef = collection(db, 'users', user.uid, 'addresses');
       const snap = await getDocs(addrRef);
       const addresses = [];
       snap.forEach(doc => addresses.push({ id: doc.id, ...doc.data() }));
@@ -144,30 +150,41 @@ class ProfileController {
   }
 
   async saveAddress(data) {
-    if (!this.currentUser) return;
+    const user = this.currentUser || auth.currentUser;
+    if (!user) {
+      throw new Error('You must be signed in to save an address.');
+    }
+    this.currentUser = user;
 
-    if (!validatePinCode(data.pinCode)) {
+    const cleanMobile = data.mobile ? data.mobile.toString().trim().replace(/[\s\-\(\)]/g, '').replace(/^(?:\+91|91|0)/, '') : '';
+    const cleanPin = data.pinCode ? data.pinCode.toString().trim() : '';
+
+    if (!validatePinCode(cleanPin)) {
       throw new Error('Please enter a valid 6-digit Indian PIN Code.');
     }
-    if (!validateIndianMobile(data.mobile)) {
+    if (!validateIndianMobile(cleanMobile)) {
       throw new Error('Please enter a valid 10-digit Indian mobile number.');
     }
 
-    const addrRef = collection(db, 'users', this.currentUser.uid, 'addresses');
-    await addDoc(addrRef, {
+    const addrRef = collection(db, 'users', user.uid, 'addresses');
+    const docData = {
       ...data,
-      pinCode: data.pinCode.toString().trim(),
-      mobile: data.mobile.toString().trim(),
+      pinCode: cleanPin,
+      mobile: cleanMobile,
       createdAt: serverTimestamp()
-    });
+    };
+    const newDoc = await addDoc(addrRef, docData);
 
     showToast('Delivery address saved!', 'success');
     await this.loadAddresses();
+    return { id: newDoc.id, ...docData };
   }
 
   async deleteAddress(id) {
-    if (!this.currentUser || !id) return;
-    const docRef = doc(db, 'users', this.currentUser.uid, 'addresses', id);
+    const user = this.currentUser || auth.currentUser;
+    if (!user || !id) return;
+    this.currentUser = user;
+    const docRef = doc(db, 'users', user.uid, 'addresses', id);
     await deleteDoc(docRef);
     showToast('Address removed.', 'info');
     await this.loadAddresses();
@@ -176,13 +193,15 @@ class ProfileController {
   // --- Orders List ---
 
   async loadOrders() {
-    if (!this.currentUser) return;
+    const user = this.currentUser || auth.currentUser;
+    if (!user) return;
+    this.currentUser = user;
     const container = document.getElementById('orders-list');
     if (!container) return;
 
     try {
       const ordersRef = collection(db, 'orders');
-      const q = query(ordersRef, where('customerUid', '==', this.currentUser.uid), orderBy('createdAt', 'desc'));
+      const q = query(ordersRef, where('customerUid', '==', user.uid), orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
       const orders = [];
       snap.forEach(doc => orders.push({ id: doc.id, ...doc.data() }));
