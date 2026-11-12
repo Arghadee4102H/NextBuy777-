@@ -224,23 +224,38 @@
 
       // Place Order (Confirm and generate order reference)
       document.getElementById('place-order-btn').addEventListener('click', async () => {
+        const placeBtn = document.getElementById('place-order-btn');
+        if (placeBtn.disabled && placeBtn.dataset.submitting === 'true') return;
+        placeBtn.disabled = true;
+        placeBtn.dataset.submitting = 'true';
+        placeBtn.textContent = 'Processing Order...';
+
         try {
-          const res = await checkoutController.createPendingOrder();
-          currentOrderInfo = res;
-          showToast(`Order ${res.orderNumber} created! Please complete payment via UPI.`, 'success', 5000);
-          document.getElementById('place-order-btn').disabled = true;
-          document.getElementById('place-order-btn').textContent = `Order ${res.orderNumber} Reserved`;
+          const rawUtr = document.getElementById('utr-input')?.value?.trim();
+          const { valid, normalized } = rawUtr ? validateUtr(rawUtr) : { valid: false, normalized: null };
           
-          // Scroll to payment section
-          document.getElementById('utr-section').scrollIntoView({ behavior: 'smooth' });
-          document.getElementById('utr-input').focus();
+          const res = await checkoutController.createPendingOrder(valid ? normalized : null);
+          currentOrderInfo = res;
+
+          showToast(`Order ${res.orderNumber} placed! Redirecting to your Order History...`, 'success', 3000);
+          placeBtn.textContent = `Order ${res.orderNumber} Placed`;
+
+          setTimeout(() => {
+            window.location.href = `order-details.html?id=${res.orderId}`;
+          }, 1000);
         } catch (err) {
           showToast(err.message, 'danger');
+          placeBtn.disabled = false;
+          placeBtn.dataset.submitting = 'false';
+          placeBtn.textContent = 'Confirm & Reserve Order';
         }
       });
 
       // Submit UTR Button
       document.getElementById('submit-utr-btn').addEventListener('click', async () => {
+        const submitBtn = document.getElementById('submit-utr-btn');
+        if (submitBtn.disabled) return;
+
         const rawUtr = document.getElementById('utr-input').value;
         const { valid, normalized } = validateUtr(rawUtr);
 
@@ -249,15 +264,28 @@
           return;
         }
 
-        if (!currentOrderInfo) {
-          showToast('Please confirm your order first before submitting UTR.', 'warning');
-          return;
-        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying...';
 
-        // Navigate / trigger Phase 5 stock reservation & verification flow
-        window.dispatchEvent(new CustomEvent('utrSubmitted', { 
-          detail: { orderId: currentOrderInfo.orderId, utr: normalized } 
-        }));
+        try {
+          if (!currentOrderInfo) {
+            // If order was not yet created, create order with this UTR
+            const res = await checkoutController.createPendingOrder(normalized);
+            currentOrderInfo = res;
+          } else {
+            // Update existing order with UTR
+            await checkoutController.submitUtr(currentOrderInfo.orderId, normalized);
+          }
+
+          showToast('Payment submitted! Redirecting to your Order History...', 'success');
+          setTimeout(() => {
+            window.location.href = `order-details.html?id=${currentOrderInfo.orderId}`;
+          }, 1000);
+        } catch (err) {
+          showToast(err.message, 'danger');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Reference';
+        }
       });
 
       // Add New Address inside Checkout

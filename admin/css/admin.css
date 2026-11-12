@@ -1,5 +1,5 @@
 /* Admin Panel Stylesheet - NextBuy 77 */
-@import url('/assets/css/variables.css');
+@import url('../../assets/css/variables.css');
 
 body.admin-body {
   background-color: #F8F5F2;

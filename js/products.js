@@ -1,6 +1,6 @@
 // Products & Dynamic Content Manager - NextBuy 77
 import { db } from './firebase-config.js';
-import { collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, query, where, getDocs, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { formatCurrency, escapeHtml, showToast } from './utils.js';
 import { i18n } from './i18n.js';
 import { cartManager } from './cart.js';
@@ -8,6 +8,7 @@ import { cartManager } from './cart.js';
 class ProductManager {
   constructor() {
     this.currentLanguage = i18n.currentLanguage || 'en';
+    this.subscribed = false;
     window.addEventListener('languageChanged', (e) => {
       this.currentLanguage = e.detail.language;
       this.refreshUI();
@@ -219,6 +220,24 @@ class ProductManager {
 
     const all = await this.getProducts();
     this.renderProductGrid('all-products-grid', all, 8);
+
+    if (!this.subscribed) {
+      this.subscribed = true;
+      try {
+        const prodRef = collection(db, 'products');
+        onSnapshot(query(prodRef, where('published', '==', true), limit(24)), () => {
+          this.getProducts({ featured: true }).then(f => this.renderProductGrid('featured-grid', f, 4));
+          this.getProducts().then(a => this.renderProductGrid('all-products-grid', a, 8));
+        }, (err) => console.warn('Product real-time listener notice:', err));
+
+        const bannersRef = collection(db, 'banners');
+        onSnapshot(query(bannersRef, where('active', '==', true), limit(5)), () => {
+          this.renderBannerSlider('banner-slider-container');
+        }, (err) => console.warn('Banner real-time listener notice:', err));
+      } catch (e) {
+        console.warn('Real-time listener setup:', e);
+      }
+    }
   }
 }
 

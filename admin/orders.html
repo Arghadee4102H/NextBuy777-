@@ -105,26 +105,58 @@
         <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
           <span>Payable Amount:</span> <strong id="modal-order-amount" style="color: var(--color-primary);">-</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
           <span>Submitted UTR:</span> <strong id="modal-order-utr" style="font-family: monospace;">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+          <span>Delivery Address:</span> <span id="modal-order-address" style="font-size: 13px; text-align: right; max-width: 60%;">-</span>
         </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Update Order Status</label>
-        <select id="modal-order-status-select" class="lang-selector-select" style="width: 100%; padding: 10px; border-radius: var(--radius-md);">
-          <option value="Pending Payment">Pending Payment</option>
-          <option value="Order Confirmed">Order Confirmed</option>
-          <option value="Processing">Processing</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Out for Delivery">Out for Delivery</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Order Progress Status</label>
+          <select id="modal-order-status-select" class="lang-selector-select" style="width: 100%; padding: 10px; border-radius: var(--radius-md);">
+            <option value="Order Placed">Order Placed</option>
+            <option value="Order Confirmed">Order Confirmed</option>
+            <option value="Processing">Processing</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Out for Delivery">Out for Delivery</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Payment Verification Status</label>
+          <select id="modal-payment-status-select" class="lang-selector-select" style="width: 100%; padding: 10px; border-radius: var(--radius-md);">
+            <option value="Payment verification pending">Payment verification pending</option>
+            <option value="Payment Verified">Payment Verified</option>
+            <option value="Payment Rejected">Payment Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="background: var(--color-bg-subtle); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: 20px;">
+        <h4 style="font-size: 13px; margin: 0 0 10px; color: var(--color-primary);">Shipping & Logistics Controls</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Courier Partner</label>
+            <input type="text" id="modal-shipping-courier" class="search-input" style="border-radius: var(--radius-md); font-size: 13px;" placeholder="e.g. Blue Dart, Delhivery, DTDC, India Post">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Tracking / AWB Number</label>
+            <input type="text" id="modal-shipping-tracking" class="search-input" style="border-radius: var(--radius-md); font-size: 13px; font-family: monospace;" placeholder="e.g. BD123456789IN">
+          </div>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Estimated Delivery Timeline</label>
+          <input type="text" id="modal-shipping-estimate" class="search-input" style="border-radius: var(--radius-md); font-size: 13px;" placeholder="e.g. 3-5 business days or 18 Nov 2026">
+        </div>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button id="update-status-btn" class="btn btn-primary">Save Status</button>
+        <button id="close-modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+        <button id="update-status-btn" class="btn btn-primary">Save Order & Shipping</button>
       </div>
     </div>
   </div>
@@ -155,15 +187,28 @@
         document.getElementById('order-action-modal').style.display = 'none';
       });
 
+      document.getElementById('close-modal-cancel-btn').addEventListener('click', () => {
+        document.getElementById('order-action-modal').style.display = 'none';
+      });
+
       document.getElementById('update-status-btn').addEventListener('click', async () => {
         const modal = document.getElementById('order-action-modal');
         const orderId = modal.getAttribute('data-order-id');
-        const newStatus = document.getElementById('modal-order-status-select').value;
+        const orderStatus = document.getElementById('modal-order-status-select').value;
+        const paymentStatus = document.getElementById('modal-payment-status-select').value;
+        const shippingCourier = document.getElementById('modal-shipping-courier').value.trim();
+        const trackingNumber = document.getElementById('modal-shipping-tracking').value.trim();
+        const estimatedDelivery = document.getElementById('modal-shipping-estimate').value.trim();
 
-        if (orderId && newStatus) {
-          await orderPaymentManager.updateOrderStatus(orderId, newStatus);
+        if (orderId) {
+          await orderPaymentManager.updateOrderFull(orderId, {
+            orderStatus,
+            paymentStatus,
+            shippingCourier,
+            trackingNumber,
+            estimatedDelivery
+          });
           modal.style.display = 'none';
-          await orderPaymentManager.loadOrders('ALL');
         }
       });
     });

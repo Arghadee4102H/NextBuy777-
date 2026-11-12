@@ -80,86 +80,243 @@
           </table>
         </div>
       </div>
+
+      <!-- Firebase Roles & RBAC Management Card -->
+      <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header-row">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Firebase Roles & Permissions</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Real-time synchronized with Firestore <code>/roles</code> collection</span>
+          </div>
+          <button id="add-role-btn" class="btn btn-primary btn-sm">+ Add New Role</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Role ID / Name</th>
+                <th>Permissions</th>
+                <th>Description</th>
+                <th>Updated (IST)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="roles-tbody">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 24px;">
+                  Loading roles from Firebase...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
+  </div>
+
+  <!-- Role Edit Modal -->
+  <div id="role-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 480px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">
+        <h3 id="role-modal-title" style="margin: 0; font-size: 18px;">Configure Firebase Role</h3>
+        <button id="close-role-modal" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <form id="role-form">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Role Identifier (ID) *</label>
+          <input type="text" id="role-id-input" required placeholder="e.g. seller, support, manager" class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Display Name *</label>
+          <input type="text" id="role-name-input" required placeholder="e.g. Verified Seller" class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Permissions (Comma separated or ALL) *</label>
+          <input type="text" id="role-perms-input" required placeholder="e.g. PRODUCTS_MANAGE, ORDERS_VIEW or ALL" class="search-input" style="border-radius: var(--radius-md);" value="PRODUCTS_MANAGE, ORDERS_VIEW">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Role Description</label>
+          <input type="text" id="role-desc-input" placeholder="e.g. Authorized merchant with seller reference rules" class="search-input" style="border-radius: var(--radius-md);">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="cancel-role-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Role to Firebase</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script type="module">
     import { adminAuth } from './js/admin-auth.js';
     import { db } from '../js/firebase-config.js';
-    import { collection, doc, getDocs, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, doc, getDocs, setDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { formatCurrency, formatDateIST, showToast, escapeHtml } from '../js/utils.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       adminAuth.protectPage();
-      await loadUsers();
+      listenToUsers();
+      listenToRoles();
 
       document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+
+      // Roles Modal Controls
+      document.getElementById('add-role-btn').addEventListener('click', () => {
+        document.getElementById('role-form').reset();
+        document.getElementById('role-id-input').disabled = false;
+        document.getElementById('role-modal-title').textContent = 'Add New Role to Firebase';
+        document.getElementById('role-modal').style.display = 'flex';
+      });
+
+      document.getElementById('close-role-modal').addEventListener('click', () => {
+        document.getElementById('role-modal').style.display = 'none';
+      });
+
+      document.getElementById('cancel-role-btn').addEventListener('click', () => {
+        document.getElementById('role-modal').style.display = 'none';
+      });
+
+      document.getElementById('role-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const roleId = document.getElementById('role-id-input').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const roleName = document.getElementById('role-name-input').value.trim();
+        const permsStr = document.getElementById('role-perms-input').value.trim();
+        const desc = document.getElementById('role-desc-input').value.trim();
+
+        const permissions = permsStr.split(',').map(p => p.trim().toUpperCase()).filter(Boolean);
+
+        try {
+          await setDoc(doc(db, 'roles', roleId), {
+            name: roleName,
+            permissions,
+            description: desc,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+
+          showToast(`Role "${roleName}" saved in Firebase!`, 'success');
+          document.getElementById('role-modal').style.display = 'none';
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
     });
 
-    async function loadUsers() {
+    function listenToUsers() {
       const tbody = document.getElementById('users-tbody');
       try {
-        const snap = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
-        if (snap.empty) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="7" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
-                No customer accounts registered yet.
-              </td>
-            </tr>
-          `;
-          return;
-        }
+        onSnapshot(query(collection(db, 'users'), orderBy('createdAt', 'desc')), (snap) => {
+          if (snap.empty) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  No customer accounts registered yet.
+                </td>
+              </tr>
+            `;
+            return;
+          }
 
-        let html = '';
-        snap.forEach(d => {
-          const u = d.data();
-          const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Customer';
-          const bonus = formatCurrency(u.bonusBalancePaise || 0);
+          let html = '';
+          snap.forEach(d => {
+            const u = d.data();
+            const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Customer';
+            const bonus = formatCurrency(u.bonusBalancePaise || 0);
 
-          html += `
-            <tr>
-              <td>
-                <strong>${escapeHtml(name)}</strong><br>
-                <span style="font-size: 12px; color: var(--color-text-muted);">${escapeHtml(u.email || '')}</span>
-              </td>
-              <td>${escapeHtml(u.mobile || 'Not provided')}</td>
-              <td>${formatDateIST(u.createdAt)}</td>
-              <td><strong>${bonus}</strong></td>
-              <td>${u.loyaltyPoints || 0} pts</td>
-              <td>
-                <span class="status-badge ${u.status === 'suspended' ? 'badge-danger' : 'badge-success'}">
-                  ${u.status === 'suspended' ? 'Suspended' : 'Active'}
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${d.id}" data-status="${u.status || 'active'}">
-                  ${u.status === 'suspended' ? 'Reactivate' : 'Suspend'}
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
+            html += `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(name)}</strong><br>
+                  <span style="font-size: 12px; color: var(--color-text-muted);">${escapeHtml(u.email || '')}</span>
+                </td>
+                <td>${escapeHtml(u.mobile || 'Not provided')}</td>
+                <td>${formatDateIST(u.createdAt)}</td>
+                <td><strong>${bonus}</strong></td>
+                <td>${u.loyaltyPoints || 0} pts</td>
+                <td>
+                  <span class="status-badge ${u.status === 'suspended' ? 'badge-danger' : 'badge-success'}">
+                    ${u.status === 'suspended' ? 'Suspended' : 'Active'}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${d.id}" data-status="${u.status || 'active'}">
+                    ${u.status === 'suspended' ? 'Reactivate' : 'Suspend'}
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = html;
 
-        tbody.querySelectorAll('.toggle-status-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const id = e.currentTarget.getAttribute('data-id');
-            const currentStatus = e.currentTarget.getAttribute('data-status');
-            const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+          tbody.querySelectorAll('.toggle-status-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = e.currentTarget.getAttribute('data-id');
+              const currentStatus = e.currentTarget.getAttribute('data-status');
+              const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
 
-            if (confirm(`Change customer status to ${newStatus}?`)) {
-              await updateDoc(doc(db, 'users', id), {
-                status: newStatus,
-                updatedAt: serverTimestamp()
-              });
-              showToast(`Customer status updated to ${newStatus}.`, 'info');
-              await loadUsers();
-            }
+              if (confirm(`Change customer status to ${newStatus}?`)) {
+                await updateDoc(doc(db, 'users', id), {
+                  status: newStatus,
+                  updatedAt: serverTimestamp()
+                });
+                showToast(`Customer status updated to ${newStatus}.`, 'info');
+              }
+            });
           });
         });
       } catch (err) {
-        console.error('Error loading users', err);
+        console.error('Error listening to users', err);
+      }
+    }
+
+    function listenToRoles() {
+      const tbody = document.getElementById('roles-tbody');
+      try {
+        onSnapshot(collection(db, 'roles'), (snap) => {
+          if (snap.empty) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 24px;">
+                  No custom roles found in Firebase. Default roles: Super Admin, Seller, Support. Click "+ Add New Role" to create one.
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          let html = '';
+          snap.forEach(d => {
+            const r = d.data();
+            const perms = Array.isArray(r.permissions) ? r.permissions.join(', ') : (r.permissions || 'ALL');
+
+            html += `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(r.name || d.id)}</strong><br>
+                  <span style="font-size: 11px; color: var(--color-text-muted); font-family: monospace;">${escapeHtml(d.id)}</span>
+                </td>
+                <td><span style="font-family: monospace; font-size: 12px; background: var(--color-bg-subtle); padding: 2px 6px; border-radius: 4px;">${escapeHtml(perms)}</span></td>
+                <td>${escapeHtml(r.description || 'Custom Role')}</td>
+                <td>${formatDateIST(r.updatedAt || r.createdAt)}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary delete-role-btn" data-id="${d.id}" style="color: var(--color-danger);">&times;</button>
+                </td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = html;
+
+          tbody.querySelectorAll('.delete-role-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = e.currentTarget.getAttribute('data-id');
+              if (confirm(`Delete role "${id}" from Firebase?`)) {
+                await deleteDoc(doc(db, 'roles', id));
+                showToast(`Role "${id}" deleted.`, 'info');
+              }
+            });
+          });
+        });
+      } catch (err) {
+        console.error('Error listening to roles', err);
       }
     }
   </script>

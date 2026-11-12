@@ -229,13 +229,19 @@ class ProfileController {
               </div>
               <span style="font-size: 15px; font-weight: 700; color: var(--color-primary);">${total}</span>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-              <span style="padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--color-bg-subtle);">
-                Payment: <strong>${escapeHtml(o.paymentStatus || 'Pending')}</strong>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+              <span style="padding: 3px 8px; border-radius: 4px; font-size: 12px; background: #FFF8E7; color: #8A5800; border: 1px solid #F5C26B;">
+                Payment: <strong>${escapeHtml(o.paymentStatus || 'Payment verification pending')}</strong>
               </span>
-              <span style="padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--color-info-bg); color: var(--color-info);">
-                Order: <strong>${escapeHtml(o.orderStatus || 'Pending')}</strong>
+              <span style="padding: 3px 8px; border-radius: 4px; font-size: 12px; background: var(--color-info-bg); color: var(--color-info);">
+                Order: <strong>${escapeHtml(o.orderStatus || 'Order Placed')}</strong>
               </span>
+              ${o.trackingNumber ? `<span style="padding: 3px 8px; border-radius: 4px; font-size: 12px; background: var(--color-bg-subtle);">Tracking: <strong>${escapeHtml(o.trackingNumber)}</strong></span>` : ''}
+            </div>
+            <div style="border-top: 1px solid var(--color-border); padding-top: 8px; display: flex; justify-content: flex-end;">
+              <a href="order-details.html?id=${o.id}" class="btn btn-sm btn-secondary" style="font-size: 12px;">
+                View Full Details, Tracking & Invoice &rarr;
+              </a>
             </div>
           </div>
         `;

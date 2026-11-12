@@ -67,15 +67,53 @@
       <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
         <div style="background: var(--color-bg-subtle); padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px;">
           <span style="color: var(--color-text-muted); display: block; font-size: 11px;">PAYMENT STATUS</span>
-          <strong id="badge-payment-status" style="color: var(--color-primary); font-size: 14px;">Pending Payment</strong>
+          <strong id="badge-payment-status" style="color: var(--color-primary); font-size: 14px;">Payment verification pending</strong>
         </div>
         <div style="background: var(--color-info-bg); padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px;">
           <span style="color: var(--color-info); display: block; font-size: 11px;">ORDER PROGRESS</span>
-          <strong id="badge-order-status" style="color: var(--color-info); font-size: 14px;">Pending Payment</strong>
+          <strong id="badge-order-status" style="color: var(--color-info); font-size: 14px;">Order Placed</strong>
         </div>
         <div id="utr-badge-container" style="display: none; background: var(--color-secondary-tint); padding: 8px 16px; border-radius: var(--radius-md); font-size: 13px;">
           <span style="color: var(--color-primary); display: block; font-size: 11px;">SUBMITTED UTR REF</span>
           <strong id="badge-utr-ref" class="upi-id-badge" style="color: var(--color-primary); font-size: 14px;">-</strong>
+        </div>
+      </div>
+
+      <!-- Manual UPI Verification Notice (24-Hour SLA) -->
+      <div id="payment-pending-notice" style="background: #FFF8E7; border: 1px solid #F5C26B; border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+          <span style="font-size: 24px; line-height: 1;">⏳</span>
+          <div>
+            <strong style="color: #8A5800; font-size: 15px; display: block; margin-bottom: 4px;">Payment verification pending</strong>
+            <p style="font-size: 13px; color: var(--color-text-main); margin: 0; line-height: 1.5;">
+              Since manual UPI payment is utilized, your payment reference is currently under review by our accounts verification desk. <strong>Please note: This verification process may take up to 24 hours.</strong> Once verified, your order status will automatically update to <em>Order Confirmed</em> and proceed to dispatch.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping & Courier Tracking Section -->
+      <div style="margin-bottom: 24px; padding: 16px; background: var(--color-bg-body); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+        <h3 style="font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>🚚</span> Shipping & Tracking Information
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 13px;">
+          <div>
+            <span style="color: var(--color-text-muted); display: block; font-size: 11px;">COURIER PARTNER</span>
+            <strong id="shipping-courier">Standard Express Courier</strong>
+          </div>
+          <div>
+            <span style="color: var(--color-text-muted); display: block; font-size: 11px;">TRACKING / AWB NUMBER</span>
+            <strong id="shipping-tracking-number" style="font-family: monospace;">Will be assigned upon dispatch</strong>
+          </div>
+          <div>
+            <span style="color: var(--color-text-muted); display: block; font-size: 11px;">DISPATCH STATUS</span>
+            <strong id="shipping-dispatch-date">Within 24-48 business hours</strong>
+          </div>
+          <div>
+            <span style="color: var(--color-text-muted); display: block; font-size: 11px;">ESTIMATED DELIVERY</span>
+            <strong id="shipping-estimated-delivery">3-5 business days</strong>
+          </div>
         </div>
       </div>
 
@@ -177,13 +215,30 @@
 
         document.getElementById('order-number-title').textContent = data.orderNumber || orderId;
         document.getElementById('order-date-text').textContent = `Placed on: ${formatDateIST(data.createdAt)}`;
-        document.getElementById('badge-payment-status').textContent = data.paymentStatus || 'Pending Payment';
-        document.getElementById('badge-order-status').textContent = data.orderStatus || 'Pending Payment';
+        
+        const payStatus = data.paymentStatus || 'Payment verification pending';
+        document.getElementById('badge-payment-status').textContent = payStatus;
+        document.getElementById('badge-order-status').textContent = data.orderStatus || 'Order Placed';
+
+        const noticeBox = document.getElementById('payment-pending-notice');
+        if (noticeBox) {
+          if (payStatus === 'Payment Verified') {
+            noticeBox.style.display = 'none';
+          } else {
+            noticeBox.style.display = 'block';
+          }
+        }
 
         if (data.utr) {
           document.getElementById('utr-badge-container').style.display = 'block';
           document.getElementById('badge-utr-ref').textContent = data.utr;
         }
+
+        // Render Shipping details
+        document.getElementById('shipping-courier').textContent = data.shippingCourier || 'Standard Express Courier';
+        document.getElementById('shipping-tracking-number').textContent = data.trackingNumber || 'Will be assigned upon dispatch';
+        document.getElementById('shipping-dispatch-date').textContent = data.dispatchedAt ? formatDateIST(data.dispatchedAt) : (data.orderStatus === 'Shipped' || data.orderStatus === 'Delivered' ? 'Dispatched' : 'Within 24-48 business hours');
+        document.getElementById('shipping-estimated-delivery').textContent = data.estimatedDelivery || '3-5 business days';
 
         // Render Address
         const addr = data.addressSnapshot || {};

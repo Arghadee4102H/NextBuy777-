@@ -10,84 +10,102 @@ import {
   orderBy, 
   where, 
   serverTimestamp, 
-  runTransaction 
+  runTransaction,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { formatCurrency, formatDateIST, showToast, escapeHtml } from '../../js/utils.js';
 
 class OrderPaymentManager {
   constructor() {
     this.orders = [];
+    this.unsubscribeOrders = null;
+    this.currentFilter = 'ALL';
   }
 
   /**
-   * Load all orders for admin review
+   * Real-time loader for all orders for admin review
    * @param {'ALL'|'PENDING_PAYMENT'|'VERIFIED'} filter 
    */
   async loadOrders(filter = 'ALL') {
+    this.currentFilter = filter;
     const tbody = document.getElementById('orders-tbody');
     if (!tbody) return;
+
+    if (this.unsubscribeOrders) {
+      this.unsubscribeOrders();
+    }
 
     try {
       const ordersRef = collection(db, 'orders');
       let q = query(ordersRef, orderBy('createdAt', 'desc'));
 
       if (filter === 'PENDING_PAYMENT') {
-        q = query(ordersRef, where('paymentStatus', 'in', ['Payment Submitted', 'Payment Under Verification']), orderBy('createdAt', 'asc'));
+        q = query(ordersRef, where('paymentStatus', 'in', ['Payment verification pending', 'Payment Submitted', 'Pending Payment', 'Payment Under Verification']), orderBy('createdAt', 'asc'));
       }
 
-      const snap = await getDocs(q);
-      this.orders = [];
-      snap.forEach(d => this.orders.push({ id: d.id, ...d.data() }));
-
-      if (this.orders.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="8" style="text-align: center; color: var(--color-text-muted); padding: 36px;">
-              No orders found matching this filter.
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      let html = '';
-      this.orders.forEach(o => {
-        const dateStr = formatDateIST(o.createdAt);
-        const amount = formatCurrency(o.finalPayablePaise || 0);
-
-        html += `
-          <tr>
-            <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
-            <td>
-              ${escapeHtml(o.customerName || 'Customer')}<br>
-              <span style="font-size: 11px; color: var(--color-text-muted);">${escapeHtml(o.customerEmail || '')}</span>
-            </td>
-            <td>${dateStr}</td>
-            <td><strong>${amount}</strong></td>
-            <td>
-              <span class="status-badge ${o.paymentStatus === 'Payment Verified' ? 'badge-success' : (o.paymentStatus === 'Payment Rejected' ? 'badge-danger' : 'badge-warning')}">
-                ${escapeHtml(o.paymentStatus || 'Pending')}
-              </span>
-              ${o.utr ? `<br><span style="font-size:11px; color:var(--color-primary); font-family:monospace;">UTR: ${escapeHtml(o.utr)}</span>` : ''}
-            </td>
-            <td>
-              <span class="status-badge badge-info">${escapeHtml(o.orderStatus || 'Pending')}</span>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-secondary view-order-btn" data-id="${o.id}">View / Update</button>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-
-      tbody.querySelectorAll('.view-order-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => this.openOrderModal(e.currentTarget.getAttribute('data-id')));
+      this.unsubscribeOrders = onSnapshot(q, (snap) => {
+        this.orders = [];
+        snap.forEach(d => this.orders.push({ id: d.id, ...d.data() }));
+        this.renderOrdersTable();
+      }, (err) => {
+        console.error('Real-time orders snapshot error:', err);
       });
     } catch (err) {
       console.error('Error loading orders', err);
     }
+  }
+
+  renderOrdersTable() {
+    const tbody = document.getElementById('orders-tbody');
+    if (!tbody) return;
+
+    if (this.orders.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; color: var(--color-text-muted); padding: 36px;">
+            No orders found matching this filter.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let html = '';
+    this.orders.forEach(o => {
+      const dateStr = formatDateIST(o.createdAt);
+      const amount = formatCurrency(o.finalPayablePaise || 0);
+
+      html += `
+        <tr>
+          <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
+          <td>
+            ${escapeHtml(o.customerName || 'Customer')}<br>
+            <span style="font-size: 11px; color: var(--color-text-muted);">${escapeHtml(o.customerEmail || '')}</span>
+          </td>
+          <td>${dateStr}</td>
+          <td><strong>${amount}</strong></td>
+          <td>
+            <span class="status-badge ${o.paymentStatus === 'Payment Verified' ? 'badge-success' : (o.paymentStatus === 'Payment Rejected' ? 'badge-danger' : 'badge-warning')}">
+              ${escapeHtml(o.paymentStatus || 'Pending')}
+            </span>
+            ${o.utr ? `<br><span style="font-size:11px; color:var(--color-primary); font-family:monospace;">UTR: ${escapeHtml(o.utr)}</span>` : ''}
+          </td>
+          <td>
+            <span class="status-badge badge-info">${escapeHtml(o.orderStatus || 'Pending')}</span>
+            ${o.trackingNumber ? `<br><span style="font-size:11px; color:var(--color-text-muted); font-family:monospace;">AWB: ${escapeHtml(o.trackingNumber)}</span>` : ''}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-secondary view-order-btn" data-id="${o.id}">View / Update</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+
+    tbody.querySelectorAll('.view-order-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => this.openOrderModal(e.currentTarget.getAttribute('data-id')));
+    });
   }
 
   /**
@@ -272,6 +290,53 @@ class OrderPaymentManager {
     showToast(`Order status updated to "${newStatus}"`, 'success');
   }
 
+  /**
+   * Update full order details including shipping, tracking, and payment verification
+   */
+  async updateOrderFull(orderId, details) {
+    const orderRef = doc(db, 'orders', orderId);
+    const snap = await getDoc(orderRef);
+    if (!snap.exists()) throw new Error('Order not found');
+
+    const o = snap.data();
+    const history = o.statusHistory || [];
+    const currentAdminUid = auth.currentUser?.uid || 'admin';
+
+    // If payment status changed to 'Payment Verified' and wasn't before
+    if (details.paymentStatus === 'Payment Verified' && o.paymentStatus !== 'Payment Verified') {
+      await this.verifyPayment(orderId, o.finalPayablePaise);
+    } else if (details.paymentStatus === 'Payment Rejected' && o.paymentStatus !== 'Payment Rejected') {
+      await this.rejectPayment(orderId, 'Payment rejected during order review');
+    }
+
+    const updates = {
+      orderStatus: details.orderStatus || o.orderStatus,
+      paymentStatus: details.paymentStatus || o.paymentStatus,
+      shippingCourier: details.shippingCourier || o.shippingCourier || 'Standard Express Courier',
+      trackingNumber: details.trackingNumber || o.trackingNumber || '',
+      estimatedDelivery: details.estimatedDelivery || o.estimatedDelivery || '3-5 business days',
+      updatedAt: serverTimestamp()
+    };
+
+    if (details.orderStatus === 'Shipped' && !o.dispatchedAt) {
+      updates.dispatchedAt = serverTimestamp();
+    }
+
+    history.push({
+      status: updates.orderStatus,
+      paymentStatus: updates.paymentStatus,
+      shippingCourier: updates.shippingCourier,
+      trackingNumber: updates.trackingNumber,
+      updatedBy: currentAdminUid,
+      timestamp: new Date().toISOString()
+    });
+
+    updates.statusHistory = history;
+
+    await updateDoc(orderRef, updates);
+    showToast(`Order ${o.orderNumber || orderId} and shipping details updated!`, 'success');
+  }
+
   openOrderModal(id) {
     const o = this.orders.find(item => item.id === id);
     if (!o) return;
@@ -280,9 +345,29 @@ class OrderPaymentManager {
     document.getElementById('modal-order-customer').textContent = `${o.customerName || 'Customer'} (${o.customerEmail || ''})`;
     document.getElementById('modal-order-amount').textContent = formatCurrency(o.finalPayablePaise || 0);
     document.getElementById('modal-order-utr').textContent = o.utr || 'Not submitted';
-    document.getElementById('modal-order-status-select').value = o.orderStatus || 'Pending Payment';
-    document.getElementById('order-action-modal').setAttribute('data-order-id', id);
+    
+    // Delivery address
+    const addr = o.addressSnapshot || {};
+    const addrStr = addr.fullName ? `${addr.fullName}, ${addr.houseBuilding || ''}, ${addr.cityVillage || ''}, ${addr.district || ''} - ${addr.pinCode || ''} (📞 ${addr.mobile || ''})` : 'Address details unavailable';
+    const addrEl = document.getElementById('modal-order-address');
+    if (addrEl) addrEl.textContent = addrStr;
 
+    document.getElementById('modal-order-status-select').value = o.orderStatus || 'Order Placed';
+    const paySelect = document.getElementById('modal-payment-status-select');
+    if (paySelect) {
+      paySelect.value = o.paymentStatus || 'Payment verification pending';
+    }
+
+    const courierInput = document.getElementById('modal-shipping-courier');
+    if (courierInput) courierInput.value = o.shippingCourier || '';
+
+    const trackingInput = document.getElementById('modal-shipping-tracking');
+    if (trackingInput) trackingInput.value = o.trackingNumber || '';
+
+    const estimateInput = document.getElementById('modal-shipping-estimate');
+    if (estimateInput) estimateInput.value = o.estimatedDelivery || '';
+
+    document.getElementById('order-action-modal').setAttribute('data-order-id', id);
     document.getElementById('order-action-modal').style.display = 'flex';
   }
 }

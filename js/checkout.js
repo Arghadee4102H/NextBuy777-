@@ -22,6 +22,8 @@ class CheckoutController {
     this.pinServiceability = { serviceable: false, pinData: null };
     this.orderCalculation = null;
     this.idempotencyKey = generateIdempotencyKey();
+    this.isSubmitting = false;
+    this.lastCreatedOrder = null;
   }
 
   async init(user) {
@@ -131,6 +133,12 @@ class CheckoutController {
 
     document.getElementById('checkout-total').textContent = formatCurrency(calc.finalPayablePaise);
 
+    const upiAppBtn = document.getElementById('open-upi-app-btn');
+    if (upiAppBtn) {
+      const amountRupees = (calc.finalPayablePaise / 100).toFixed(2);
+      upiAppBtn.href = `upi://pay?pa=9433204168@slc&pn=NextBuy%2077&am=${amountRupees}&cu=INR`;
+    }
+
     // Render item lines
     const itemsContainer = document.getElementById('checkout-items-list');
     if (itemsContainer) {
@@ -150,8 +158,18 @@ class CheckoutController {
 
   /**
    * Create Pending Order in Firestore
+   * Ensures idempotency: registers transaction only once even if clicked multiple times.
+   * Empties the cart automatically upon order placement.
    */
-  async createPendingOrder() {
+  async createPendingOrder(utr = null) {
+    if (this.isSubmitting) {
+      if (this.lastCreatedOrder) return this.lastCreatedOrder;
+      throw new Error('Order creation is already in progress. Please wait...');
+    }
+    if (this.lastCreatedOrder) {
+      return this.lastCreatedOrder;
+    }
+
     if (!this.currentUser) throw new Error('Please sign in to place your order.');
     if (!this.selectedAddress) throw new Error('Please select or add a delivery address.');
     if (!this.pinServiceability.serviceable) {
@@ -161,29 +179,108 @@ class CheckoutController {
     const items = cartManager.getItems();
     if (items.length === 0) throw new Error('Your cart is empty.');
 
-    const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
-    const orderData = {
-      orderNumber,
-      customerUid: this.currentUser.uid,
-      customerEmail: this.currentUser.email,
-      customerName: `${this.currentUser.displayName || ''}`.trim(),
-      addressSnapshot: { ...this.selectedAddress },
-      itemsSnapshot: this.orderCalculation.items,
-      subtotalPaise: this.orderCalculation.subtotalPaise,
-      deliveryPaise: this.orderCalculation.deliveryPaise,
-      finalPayablePaise: this.orderCalculation.finalPayablePaise,
-      paymentMethod: 'MANUAL_UPI',
-      paymentStatus: 'Pending Payment',
-      orderStatus: 'Pending Payment',
-      idempotencyKey: this.idempotencyKey,
-      termsAcceptedAt: new Date().toISOString(),
-      termsVersion: '2026-10-27',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
+    this.isSubmitting = true;
 
-    const docRef = await addDoc(collection(db, 'orders'), orderData);
-    return { orderId: docRef.id, orderNumber, finalPayablePaise: this.orderCalculation.finalPayablePaise };
+    try {
+      const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+      const cleanUtr = utr ? utr.trim().toUpperCase() : null;
+
+      const orderData = {
+        orderNumber,
+        customerUid: this.currentUser.uid,
+        customerEmail: this.currentUser.email,
+        customerName: `${this.currentUser.displayName || ''}`.trim() || 'Customer',
+        addressSnapshot: { ...this.selectedAddress },
+        itemsSnapshot: this.orderCalculation.items,
+        subtotalPaise: this.orderCalculation.subtotalPaise,
+        deliveryPaise: this.orderCalculation.deliveryPaise,
+        finalPayablePaise: this.orderCalculation.finalPayablePaise,
+        paymentMethod: 'MANUAL_UPI',
+        paymentStatus: 'Payment verification pending',
+        orderStatus: 'Order Placed',
+        idempotencyKey: this.idempotencyKey,
+        termsAcceptedAt: new Date().toISOString(),
+        termsVersion: '2026-10-27',
+        statusHistory: [
+          {
+            status: 'Order Placed',
+            note: 'Order confirmed by customer via Manual UPI',
+            timestamp: new Date().toISOString()
+          },
+          {
+            status: 'Payment verification pending',
+            note: 'Manual UPI verification required (up to 24 hours)',
+            timestamp: new Date().toISOString()
+          }
+        ],
+        shippingCourier: 'Standard Express Courier',
+        trackingNumber: '',
+        dispatchedAt: null,
+        estimatedDelivery: '3-5 business days',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      if (cleanUtr) {
+        orderData.utr = cleanUtr;
+        orderData.utrSubmittedAt = serverTimestamp();
+      }
+
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+
+      if (cleanUtr) {
+        try {
+          await setDoc(doc(db, 'utrIndex', cleanUtr), {
+            orderId: docRef.id,
+            customerUid: this.currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+        } catch (utrErr) {
+          console.warn('UTR index record notice:', utrErr);
+        }
+      }
+
+      // Automatically remove/delete items from the cart
+      cartManager.clearCart();
+
+      this.lastCreatedOrder = {
+        orderId: docRef.id,
+        orderNumber,
+        finalPayablePaise: this.orderCalculation.finalPayablePaise
+      };
+
+      return this.lastCreatedOrder;
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  async submitUtr(orderId, rawUtr) {
+    if (!orderId) throw new Error('Order reference missing.');
+    const cleanUtr = (rawUtr || '').trim().toUpperCase();
+    if (!cleanUtr || cleanUtr.length < 6) {
+      throw new Error('Please enter a valid 6-35 character UTR / Reference number.');
+    }
+
+    const orderRef = doc(db, 'orders', orderId);
+    await updateDoc(orderRef, {
+      utr: cleanUtr,
+      paymentStatus: 'Payment verification pending',
+      utrSubmittedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    try {
+      await setDoc(doc(db, 'utrIndex', cleanUtr), {
+        orderId: orderId,
+        customerUid: this.currentUser?.uid || 'customer',
+        createdAt: serverTimestamp()
+      });
+    } catch (e) {
+      console.warn('UTR index update notice:', e);
+    }
+
+    return true;
   }
 }
 
