@@ -1,4 +1,4 @@
-// Pricing Engine & Delivery Precedence Rules - NextBuy 77
+﻿// Pricing Engine & Delivery Precedence Rules - NextPay 7
 // All money values are calculated and stored in INTEGER PAISE (1 INR = 100 paise)
 import { db } from './firebase-config.js';
 import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -234,4 +234,5 @@ export function calculateOrderTotals({
     items: processedItems
   };
 }
+
 

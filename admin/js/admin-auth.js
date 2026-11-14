@@ -1,4 +1,4 @@
-// Admin Authentication & RBAC Guard - NextBuy 77
+﻿// Admin Authentication & RBAC Guard - NextPay 7
 import { auth, db } from '../../js/firebase-config.js';
 import { 
   signInWithEmailAndPassword, 
@@ -40,7 +40,7 @@ class AdminAuthManager {
       const isAuthorized = await this.verifyAdminAccess(cred.user);
       if (!isAuthorized) {
         await signOut(auth);
-        throw new Error('Access Denied: You do not have administrator permissions for NextBuy 77.');
+        throw new Error('Access Denied: You do not have administrator permissions for NextPay 7.');
       }
       window.location.href = 'dashboard.html';
     } catch (err) {
@@ -154,3 +154,4 @@ class AdminAuthManager {
 }
 
 export const adminAuth = new AdminAuthManager();
+

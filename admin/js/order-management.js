@@ -1,4 +1,4 @@
-// Order & Payment Management Controller - NextBuy 77
+﻿// Order & Payment Management Controller - NextPay 7
 import { db, auth } from '../../js/firebase-config.js';
 import { 
   collection, 
@@ -449,4 +449,5 @@ class OrderPaymentManager {
 }
 
 export const orderPaymentManager = new OrderPaymentManager();
+
 

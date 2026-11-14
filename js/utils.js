@@ -1,4 +1,4 @@
-// Utility Helpers for NextBuy 77
+﻿// Utility Helpers for NextPay 7
 
 /**
  * Format paise (integer) to Indian Rupees string format (₹1,23,456.00)
@@ -184,4 +184,5 @@ export function extractImageUrl(input) {
 
   return trimmed;
 }
+
 

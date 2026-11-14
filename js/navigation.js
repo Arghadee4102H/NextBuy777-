@@ -1,4 +1,4 @@
-// Navigation Drawer & Header Controller - NextBuy 77
+﻿// Navigation Drawer & Header Controller - NextPay 7
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { cartManager } from './cart.js';
@@ -74,4 +74,5 @@ export function initNavigation() {
     }
   });
 }
+
 

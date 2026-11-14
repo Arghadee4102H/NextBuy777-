@@ -1,4 +1,4 @@
-// Customer Profile & Address Management - NextBuy 77
+﻿// Customer Profile & Address Management - NextPay 7
 import { db, auth } from './firebase-config.js';
 import { 
   doc, 
@@ -350,4 +350,5 @@ class ProfileController {
 }
 
 export const profileController = new ProfileController();
+
 

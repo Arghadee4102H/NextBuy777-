@@ -1,4 +1,4 @@
-// Products & Dynamic Content Manager - NextBuy 77
+﻿// Products & Dynamic Content Manager - NextPay 7
 import { db } from './firebase-config.js';
 import { collection, query, where, getDocs, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { formatCurrency, escapeHtml, showToast, extractImageUrl } from './utils.js';
@@ -708,4 +708,5 @@ class ProductManager {
 }
 
 export const productManager = new ProductManager();
+
 

@@ -1,4 +1,4 @@
-// Payment Management & UTR Stock Reservation - NextBuy 77
+﻿// Payment Management & UTR Stock Reservation - NextPay 7
 import { db, auth } from './firebase-config.js';
 import { 
   doc, 
@@ -17,7 +17,7 @@ import { cartManager } from './cart.js';
  */
 export function generateUpiPayUri(orderNumber, finalPayablePaise) {
   const upiId = '9433204168@slc';
-  const payeeName = 'NextBuy 77';
+  const payeeName = 'NextPay 7';
   const amountRupees = ((finalPayablePaise || 0) / 100).toFixed(2);
   const note = encodeURIComponent(`Order ${orderNumber}`);
   return `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${amountRupees}&cu=INR&tn=${note}`;
@@ -157,4 +157,5 @@ export async function submitUtrPayment(orderId, rawUtr) {
   showToast(`UTR reference submitted! Order ${confirmedOrderNumber} is reserved.`, 'success', 5000);
   return { success: true, orderNumber: confirmedOrderNumber };
 }
+
 

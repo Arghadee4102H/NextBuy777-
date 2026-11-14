@@ -1,4 +1,4 @@
-// Cart State & Management - NextBuy 77
+﻿// Cart State & Management - NextPay 7
 import { formatCurrency, showToast } from './utils.js';
 import { i18n } from './i18n.js';
 
@@ -107,4 +107,5 @@ class CartManager {
 }
 
 export const cartManager = new CartManager();
+
 

@@ -1,51 +1,47 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shopping Cart — NextBuy 77</title>
-  <meta name="description" content="View items in your shopping cart, review order total, and proceed to checkout on NextBuy 77.">
+  <title>Shopping Cart — NextPay 7</title>
+  <meta name="description" content="View items in your shopping cart, review order total, and proceed to checkout on NextPay 7.">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/anti-copy.css">
 </head>
 <body>
-  <!-- Site Header -->
+  <!-- Header with Brand on Top & Search + Hamburger Menu Below -->
   <header class="site-header">
-    <div class="header-top">
-      <div class="container header-top-content">
-        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
-        <div class="lang-selector-wrap">
-          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
-          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
-            <option value="en">English</option>
-            <option value="bn">বাংলা (Bengali)</option>
-            <option value="hi">हिन्दी (Hindi)</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="container header-main-nav">
-      <!-- Website Logo & Name -->
-      <div class="brand-logo-wrap">
+    <!-- Top Row: Brand Logo + Brand Name "NextPay 7" + Tagline + Quick Cart -->
+    <div class="header-top-brand-bar">
+      <div class="container header-brand-inner">
         <a href="index.html" class="brand-link">
-          <img src="assets/images/logo.jpeg" alt="NextBuy 77" class="brand-logo" onerror="this.style.display='none'">
+          <img src="assets/images/logo.jpeg" alt="NextPay 7" class="brand-logo" onerror="this.style.display='none'">
           <div class="brand-text">
-            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-name">NextPay 7</span>
             <span class="brand-tagline">Buy Next. Buy Better.</span>
           </div>
         </a>
-      </div>
 
-      <!-- Prominent Search Bar -->
-      <div class="header-search-wrap">
-        <form class="header-search-form" action="products.html" method="GET">
-          <input type="text" name="q" class="search-input" placeholder="Search fashion, jewellery, perfumes..." data-i18n-placeholder="nav.searchPlaceholder" aria-label="Search products">
-          <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
+        <div class="header-top-right">
+          <a href="cart.html" class="header-cart-icon-btn" aria-label="Shopping Cart">
+            <span style="font-size: 20px;">🛒</span>
+            <span class="cart-badge" id="cart-badge">0</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Below Row: Search Bar with 3-Line Menu Icon (Hamburger) directly to its right -->
+    <div class="header-search-menu-bar">
+      <div class="container header-search-menu-inner">
+        <form class="header-search-form-row" action="products.html" method="GET">
+          <div class="search-input-wrap">
+            <input type="text" name="q" class="search-input-main" placeholder="Search fashion, jewellery, perfumes..." aria-label="Search products">
+            <button type="submit" class="search-submit-btn" aria-label="Submit search">🔍</button>
+          </div>
         </form>
-      </div>
 
-      <!-- Right Action & Hamburger Menu Icon -->
-      <div class="header-right-actions">
+        <!-- Hamburger Icon (Three Lines ☰) -->
         <button id="menu-toggle-btn" class="menu-hamburger-btn" aria-label="Open Navigation Menu">
           <span class="hamburger-bar"></span>
           <span class="hamburger-bar"></span>
@@ -60,9 +56,9 @@
   <nav id="nav-drawer" class="nav-drawer" aria-label="Navigation Menu">
     <div class="drawer-header">
       <div class="drawer-brand">
-        <img src="assets/images/logo.jpeg" alt="NextBuy 77" style="height: 32px; width: auto; border-radius: 4px;">
+        <img src="assets/images/logo.jpeg" alt="NextPay 7" style="height: 32px; width: auto; border-radius: 4px;">
         <div>
-          <strong style="display: block; font-size: 15px;">NextBuy 77</strong>
+          <strong style="display: block; font-size: 15px;">NextPay 7</strong>
           <span style="font-size: 11px; color: var(--color-text-muted);">Buy Next. Buy Better.</span>
         </div>
       </div>
@@ -184,10 +180,10 @@
     <div class="container">
       <div class="footer-grid">
         <div>
-          <h3 class="footer-brand-title">NextBuy 77</h3>
+          <h3 class="footer-brand-title">NextPay 7</h3>
           <p class="footer-brand-tagline" data-i18n="brand.tagline">Buy Next. Buy Better.</p>
           <p style="font-size: 14px; opacity: 0.85;" data-i18n="footer.aboutText">
-            NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
+            NextPay 7 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
           </p>
         </div>
         <div>
@@ -214,7 +210,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span>&copy; 2026 NextPay 7. <span data-i18n="footer.rights">All rights reserved.</span></span>
         <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
       </div>
     </div>
@@ -329,4 +325,5 @@
   </script>
 </body>
 </html>
+
 

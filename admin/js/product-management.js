@@ -1,4 +1,4 @@
-// Product Management Controller - NextBuy 77
+﻿// Product Management Controller - NextPay 7
 import { db, storage, auth } from '../../js/firebase-config.js';
 import { 
   collection, 
@@ -31,18 +31,27 @@ class ProductManager {
   }
 
   async loadCategories() {
+    const defaultCategories = [
+      { id: 'fashion-accessories', name: { en: 'Fashion & Accessories' } },
+      { id: 'imitation-jewellery', name: { en: 'Imitation Jewellery' } },
+      { id: 'perfumes-lifestyle', name: { en: 'Perfumes & Lifestyle' } },
+      { id: 'general-collection', name: { en: 'General Collection' } }
+    ];
+
     try {
       const snap = await getDocs(query(collection(db, 'categories'), orderBy('name.en', 'asc')));
-      this.categories = [];
-      snap.forEach(d => this.categories.push({ id: d.id, ...d.data() }));
-
-      const select = document.getElementById('prod-category');
-      if (select) {
-        select.innerHTML = '<option value="">Select Category</option>' + 
-          this.categories.map(c => `<option value="${c.id}">${c.name?.en || 'Category'}</option>`).join('');
-      }
+      const loaded = [];
+      snap.forEach(d => loaded.push({ id: d.id, ...d.data() }));
+      this.categories = loaded.length > 0 ? loaded : defaultCategories;
     } catch (e) {
-      console.warn('Categories loaded', e);
+      console.warn('Categories query fallback to defaults:', e);
+      this.categories = defaultCategories;
+    }
+
+    const select = document.getElementById('prod-category');
+    if (select) {
+      select.innerHTML = '<option value="">Select Category</option>' + 
+        this.categories.map(c => `<option value="${c.id}">${c.name?.en || c.name || 'Category'}</option>`).join('');
     }
   }
 
@@ -94,7 +103,7 @@ class ProductManager {
       const rawImg = (p.images && p.images[0]) || '../assets/images/logo.jpeg';
       const img = extractImageUrl(rawImg) || '../assets/images/logo.jpeg';
       const stock = p.availableStock !== undefined ? p.availableStock : (p.stock || 0);
-      const seller = p.sellerName || 'NextBuy 77 Official';
+      const seller = p.sellerName || 'NextPay 7 Official';
 
       html += `
         <tr>
@@ -177,8 +186,8 @@ class ProductManager {
       ? Math.round(((originalPricePaise - pricePaise) / originalPricePaise) * 100) 
       : 0;
 
-    const currentSellerId = auth.currentUser?.uid || 'SELLER_NEXTBUY_OFFICIAL';
-    const currentSellerName = formData.sellerName?.trim() || 'NextBuy 77 Official Seller';
+    const currentSellerId = auth.currentUser?.uid || 'SELLER_NEXTPAY_OFFICIAL';
+    const currentSellerName = formData.sellerName?.trim() || 'NextPay 7 Official Seller';
 
     const rawImgInput = (formData.images && formData.images[0]) || '';
     const cleanImageUrl = extractImageUrl(rawImgInput) || 'assets/images/logo.jpeg';
@@ -197,19 +206,22 @@ class ProductManager {
       throw new Error('At least one product image is required. Please provide an image URL or HTML embed code.');
     }
 
+    const prodName = (formData.name || formData.nameEn || '').trim();
+    const prodDesc = (formData.description || formData.descEn || '').trim();
+
+    if (!prodName) {
+      throw new Error('Product name is required.');
+    }
+
     const payload = {
       name: {
-        en: formData.nameEn?.trim() || '',
-        bn: formData.nameBn?.trim() || '',
-        hi: formData.nameHi?.trim() || ''
+        en: prodName
       },
       description: {
-        en: formData.descEn?.trim() || '',
-        bn: formData.descBn?.trim() || '',
-        hi: formData.descHi?.trim() || ''
+        en: prodDesc
       },
-      categoryId: formData.categoryId || '',
-      categoryName: formData.categoryName || '',
+      categoryId: formData.categoryId || 'general-collection',
+      categoryName: formData.categoryName || 'General Collection',
       sku: formData.sku?.trim().toUpperCase() || `SKU-${Date.now().toString().slice(-6)}`,
       pricePaise,
       originalPricePaise,
@@ -226,11 +238,11 @@ class ProductManager {
         sellerName: currentSellerName,
         dispatchSlaHours: parseInt(formData.dispatchSlaHours || 24, 10),
         returnPolicy: formData.returnPolicy || '7 Days Replacement for Damaged/Defective Items',
-        warranty: formData.warranty || 'NextBuy 77 Quality Assured',
+        warranty: formData.warranty || 'NextPay 7 Quality Assured',
         shippingOrigin: formData.shippingOrigin || 'West Bengal, India',
         verifiedMerchant: true
       },
-      searchTokens: this.generateSearchTokens({ en: formData.nameEn, bn: formData.nameBn, hi: formData.nameHi }, formData.sku),
+      searchTokens: this.generateSearchTokens({ en: prodName }, formData.sku),
       updatedAt: serverTimestamp()
     };
 
@@ -294,10 +306,10 @@ class ProductManager {
       const p = this.products.find(item => item.id === id);
       if (p) {
         document.getElementById('modal-title').textContent = 'Edit Product';
-        document.getElementById('prod-name-en').value = p.name?.en || '';
-        document.getElementById('prod-name-bn').value = p.name?.bn || '';
-        document.getElementById('prod-name-hi').value = p.name?.hi || '';
-        document.getElementById('prod-desc-en').value = p.description?.en || '';
+        const nameInput = document.getElementById('prod-name') || document.getElementById('prod-name-en');
+        if (nameInput) nameInput.value = p.name?.en || (typeof p.name === 'string' ? p.name : '');
+        const descInput = document.getElementById('prod-desc') || document.getElementById('prod-desc-en');
+        if (descInput) descInput.value = p.description?.en || (typeof p.description === 'string' ? p.description : '');
         document.getElementById('prod-sku').value = p.sku || '';
         document.getElementById('prod-price').value = ((p.pricePaise || 0) / 100).toFixed(2);
         document.getElementById('prod-orig-price').value = ((p.originalPricePaise || 0) / 100).toFixed(2);
@@ -311,13 +323,13 @@ class ProductManager {
         
         // Seller rules
         if (document.getElementById('prod-seller-name')) {
-          document.getElementById('prod-seller-name').value = p.sellerName || '';
+          document.getElementById('prod-seller-name').value = p.sellerName || 'NextPay 7 Official Seller';
         }
         if (document.getElementById('prod-dispatch-sla')) {
           document.getElementById('prod-dispatch-sla').value = p.sellerReferenceRules?.dispatchSlaHours || 24;
         }
         if (document.getElementById('prod-return-policy')) {
-          document.getElementById('prod-return-policy').value = p.sellerReferenceRules?.returnPolicy || '';
+          document.getElementById('prod-return-policy').value = p.sellerReferenceRules?.returnPolicy || '7 Days Replacement for Damaged/Defective Items';
         }
       }
     } else {
@@ -328,7 +340,7 @@ class ProductManager {
       this.initImageSlots([]);
 
       if (document.getElementById('prod-seller-name')) {
-        document.getElementById('prod-seller-name').value = 'NextBuy 77 Official Seller';
+        document.getElementById('prod-seller-name').value = 'NextPay 7 Official Seller';
       }
       if (document.getElementById('prod-dispatch-sla')) {
         document.getElementById('prod-dispatch-sla').value = 24;
@@ -457,7 +469,6 @@ class ProductManager {
 
     return images;
   }
-  }
 
   closeModal() {
     this.currentEditingId = null;
@@ -466,3 +477,4 @@ class ProductManager {
 }
 
 export const productManager = new ProductManager();
+

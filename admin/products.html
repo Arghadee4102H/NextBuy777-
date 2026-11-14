@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Management — NextBuy 77 Admin</title>
+  <title>Product Management — NextPay 7 Admin</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="stylesheet" href="css/admin.css">
@@ -12,9 +12,9 @@
   <!-- Sidebar -->
   <aside class="admin-sidebar">
     <div class="sidebar-header">
-      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <img src="../assets/images/logo.jpeg" alt="NextPay 7">
       <div>
-        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <strong style="font-size: 16px; color: #fff;">NextPay 7</strong>
         <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
       </div>
     </div>
@@ -94,20 +94,10 @@
       </div>
 
       <form id="product-form">
-        <!-- Multilingual Names -->
+        <!-- English Product Name -->
         <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Product Name (English) *</label>
-          <input type="text" id="prod-name-en" required class="search-input" style="border-radius: var(--radius-md);">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-          <div>
-            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (বাংলা Bengali)</label>
-            <input type="text" id="prod-name-bn" class="search-input" style="border-radius: var(--radius-md);">
-          </div>
-          <div>
-            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (हिन्दी Hindi)</label>
-            <input type="text" id="prod-name-hi" class="search-input" style="border-radius: var(--radius-md);">
-          </div>
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Product Name *</label>
+          <input type="text" id="prod-name" required class="search-input" style="border-radius: var(--radius-md);" placeholder="Enter product name in English">
         </div>
 
         <!-- Category & SKU -->
@@ -119,6 +109,10 @@
             </div>
             <select id="prod-category" required class="lang-selector-select" style="width: 100%; padding: 10px; border-radius: var(--radius-md);">
               <option value="">Select Category</option>
+              <option value="fashion-accessories">Fashion & Accessories</option>
+              <option value="imitation-jewellery">Imitation Jewellery</option>
+              <option value="perfumes-lifestyle">Perfumes & Lifestyle</option>
+              <option value="general-collection">General Collection</option>
             </select>
           </div>
           <div>
@@ -169,7 +163,7 @@
           <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin-bottom: 8px;">
             <div>
               <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px;">Seller Name</label>
-              <input type="text" id="prod-seller-name" class="search-input" style="border-radius: var(--radius-md); font-size: 13px;" value="NextBuy 77 Official Seller">
+              <input type="text" id="prod-seller-name" class="search-input" style="border-radius: var(--radius-md); font-size: 13px;" value="NextPay 7 Official Seller">
             </div>
             <div>
               <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px;">Dispatch SLA (Hours)</label>
@@ -182,10 +176,10 @@
           </div>
         </div>
 
-        <!-- Description (English) -->
+        <!-- Description -->
         <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Description (English)</label>
-          <textarea id="prod-desc-en" rows="3" class="search-input" style="border-radius: var(--radius-md); resize: vertical;"></textarea>
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Product Description *</label>
+          <textarea id="prod-desc" rows="3" required class="search-input" style="border-radius: var(--radius-md); resize: vertical;" placeholder="Detailed product description in English..."></textarea>
         </div>
 
         <!-- Flags -->
@@ -212,7 +206,7 @@
   <script type="module">
     import { adminAuth } from './js/admin-auth.js';
     import { productManager } from './js/product-management.js';
-    import { extractImageUrl } from '../js/utils.js';
+    import { extractImageUrl, showToast } from '../js/utils.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       adminAuth.protectPage();
@@ -254,10 +248,12 @@
           return;
         }
 
+        const nameVal = document.getElementById('prod-name')?.value || document.getElementById('prod-name-en')?.value || '';
+        const descVal = document.getElementById('prod-desc')?.value || document.getElementById('prod-desc-en')?.value || '';
+
         const formData = {
-          nameEn: document.getElementById('prod-name-en').value,
-          nameBn: document.getElementById('prod-name-bn').value,
-          nameHi: document.getElementById('prod-name-hi').value,
+          name: nameVal,
+          nameEn: nameVal,
           categoryId: catSelect.value,
           categoryName: selectedCatName,
           sku: document.getElementById('prod-sku').value,
@@ -268,7 +264,8 @@
           sellerName: document.getElementById('prod-seller-name')?.value,
           dispatchSlaHours: document.getElementById('prod-dispatch-sla')?.value,
           returnPolicy: document.getElementById('prod-return-policy')?.value,
-          descEn: document.getElementById('prod-desc-en').value,
+          description: descVal,
+          descEn: descVal,
           published: document.getElementById('prod-published').checked,
           featured: document.getElementById('prod-featured').checked,
           newArrival: document.getElementById('prod-new').checked

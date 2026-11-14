@@ -3,43 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy - NextBuy 77</title>
-  <meta name="description" content="NextBuy 77 Privacy Policy. Learn how we handle your personal data, order information, and privacy rights.">
+  <title>Privacy Policy - NextPay 7</title>
+  <meta name="description" content="NextPay 7 Privacy Policy. Learn how we handle your personal data, order information, and privacy rights.">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/anti-copy.css">
 </head>
 <body>
   <!-- Site Header -->
   <header class="site-header">
-    <div class="header-top">
-      <div class="container header-top-content">
-        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
-        <div class="lang-selector-wrap">
-          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
-          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
-            <option value="en">English</option>
-            <option value="bn">বাংলা (Bengali)</option>
-            <option value="hi">हिन्दी (Hindi)</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="container header-main">
-      <div class="brand-logo-wrap">
-        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
-          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+    <div class="header-top-brand-bar">
+      <div class="container header-brand-inner">
+        <a href="index.html" class="brand-link">
+          <img src="assets/images/logo.jpeg" alt="NextPay 7 Logo" class="brand-logo" onerror="this.style.display='none'">
           <div class="brand-text">
-            <span class="brand-name">NextBuy 77</span>
+            <span class="brand-name">NextPay 7</span>
             <span class="brand-tagline">Buy Next. Buy Better.</span>
           </div>
         </a>
-      </div>
-      <div class="header-actions">
-        <a href="index.html" class="action-btn" data-i18n="nav.home">Home</a>
-        <a href="cart.html" class="action-btn">
-          <span data-i18n="nav.cart">Cart</span>
-          <span class="cart-badge" id="cart-badge">0</span>
-        </a>
+        <div class="header-top-right">
+          <a href="index.html" class="btn btn-secondary btn-sm">🏠 Home</a>
+          <a href="products.html" class="btn btn-secondary btn-sm">🛍️ Products</a>
+          <a href="cart.html" class="btn btn-primary btn-sm">🛒 Cart</a>
+        </div>
       </div>
     </div>
   </header>
@@ -55,7 +40,7 @@
     <div class="container">
       <article class="legal-content-card selectable-text">
         <div class="legal-section">
-          <p>Welcome to <strong>NextBuy 77</strong>. We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and share your information when you visit our website or purchase products from us.</p>
+          <p>Welcome to <strong>NextPay 7</strong>. We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and share your information when you visit our website or purchase products from us.</p>
           <p>By using our website, you acknowledge this Privacy Policy. Where consent is required by applicable law, we will obtain it before processing your personal information.</p>
         </div>
 
@@ -103,7 +88,7 @@
 
         <div class="legal-section">
           <h2>3. Payment Security</h2>
-          <p>NextBuy 77 may use third-party payment gateways to process online transactions.</p>
+          <p>NextPay 7 may use third-party payment gateways to process online transactions.</p>
           <p>Payment providers may collect and process payment information according to their own privacy policies and security practices. Customers should review the relevant provider's terms when making a payment.</p>
           <p>We take reasonable steps to protect the transaction information available to us. However, no online system can be guaranteed to be completely secure.</p>
         </div>
@@ -170,9 +155,9 @@
 
         <div class="legal-section">
           <h2>11. Contact and Privacy Grievances</h2>
-          <p>If you have questions, requests, or concerns regarding this Privacy Policy or the handling of your personal information, please contact us through the official contact details displayed on the NextBuy 77 website.</p>
+          <p>If you have questions, requests, or concerns regarding this Privacy Policy or the handling of your personal information, please contact us through the official contact details displayed on the NextPay 7 website.</p>
           <p>We will review and respond to privacy-related concerns in accordance with applicable law.</p>
-          <p style="margin-top: 16px;"><strong>NextBuy 77 — Buy Next. Buy Better.</strong></p>
+          <p style="margin-top: 16px;"><strong>NextPay 7 — Buy Next. Buy Better.</strong></p>
         </div>
       </article>
     </div>
@@ -183,10 +168,10 @@
     <div class="container">
       <div class="footer-grid">
         <div>
-          <h3 class="footer-brand-title">NextBuy 77</h3>
+          <h3 class="footer-brand-title">NextPay 7</h3>
           <p class="footer-brand-tagline" data-i18n="brand.tagline">Buy Next. Buy Better.</p>
           <p style="font-size: 14px; opacity: 0.85;" data-i18n="footer.aboutText">
-            NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
+            NextPay 7 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products.
           </p>
         </div>
         <div>
@@ -211,7 +196,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span>&copy; 2026 NextBuy 77. <span data-i18n="footer.rights">All rights reserved.</span></span>
+        <span>&copy; 2026 NextPay 7. <span data-i18n="footer.rights">All rights reserved.</span></span>
         <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
       </div>
     </div>
@@ -224,11 +209,6 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
       securityDeterrents.init();
-
-      const langSelect = document.getElementById('lang-select');
-      if (langSelect) {
-        langSelect.addEventListener('change', (e) => i18n.setLanguage(e.target.value));
-      }
     });
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Category Management — NextBuy 77 Admin</title>
+  <title>Category Management — NextPay 7 Admin</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="stylesheet" href="css/admin.css">
@@ -12,9 +12,9 @@
   <!-- Sidebar -->
   <aside class="admin-sidebar">
     <div class="sidebar-header">
-      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <img src="../assets/images/logo.jpeg" alt="NextPay 7">
       <div>
-        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <strong style="font-size: 16px; color: #fff;">NextPay 7</strong>
         <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
       </div>
     </div>
@@ -54,7 +54,7 @@
         <div class="card-header-row">
           <div>
             <h3 style="font-size: 18px; margin-bottom: 2px;">Categories List</h3>
-            <span style="font-size: 13px; color: var(--color-text-muted);">Multilingual store categories</span>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Store product categories</span>
           </div>
           <button id="add-cat-btn" class="btn btn-primary btn-sm">+ Add New Category</button>
         </div>
@@ -64,7 +64,7 @@
             <thead>
               <tr>
                 <th>Order</th>
-                <th>Category Name (EN / BN / HI)</th>
+                <th>Category Name</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -92,18 +92,8 @@
 
       <form id="category-form">
         <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (English) *</label>
-          <input type="text" id="cat-name-en" required class="search-input" style="border-radius: var(--radius-md);">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-          <div>
-            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (বাংলা Bengali)</label>
-            <input type="text" id="cat-name-bn" class="search-input" style="border-radius: var(--radius-md);">
-          </div>
-          <div>
-            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Name (हिन्दी Hindi)</label>
-            <input type="text" id="cat-name-hi" class="search-input" style="border-radius: var(--radius-md);">
-          </div>
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Category Name *</label>
+          <input type="text" id="cat-name-en" required class="search-input" style="border-radius: var(--radius-md);" placeholder="e.g. Imitation Jewellery">
         </div>
         <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Display Order</label>
@@ -153,11 +143,10 @@
 
       document.getElementById('category-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const catName = document.getElementById('cat-name-en').value.trim();
         const payload = {
           name: {
-            en: document.getElementById('cat-name-en').value.trim(),
-            bn: document.getElementById('cat-name-bn').value.trim(),
-            hi: document.getElementById('cat-name-hi').value.trim()
+            en: catName
           },
           order: parseInt(document.getElementById('cat-order').value, 10) || 1,
           active: document.getElementById('cat-active').checked,
@@ -199,14 +188,12 @@
         let html = '';
         snap.forEach(d => {
           const c = d.data();
-          const nameEn = c.name?.en || 'Untitled';
-          const nameBn = c.name?.bn ? ` / ${c.name.bn}` : '';
-          const nameHi = c.name?.hi ? ` / ${c.name.hi}` : '';
+          const nameEn = c.name?.en || (typeof c.name === 'string' ? c.name : 'Untitled');
 
           html += `
             <tr>
               <td><strong>${c.order || 1}</strong></td>
-              <td><strong>${escapeHtml(nameEn)}</strong><span style="font-size:12px;color:var(--color-text-muted);">${escapeHtml(nameBn + nameHi)}</span></td>
+              <td><strong>${escapeHtml(nameEn)}</strong></td>
               <td><span class="status-badge ${c.active ? 'badge-success' : 'badge-danger'}">${c.active ? 'Active' : 'Inactive'}</span></td>
               <td>
                 <button class="btn btn-sm btn-secondary delete-cat-btn" data-id="${d.id}" style="color: var(--color-danger);">&times; Delete</button>

@@ -1,4 +1,4 @@
-// Checkout Controller & Order Creation - NextBuy 77
+﻿// Checkout Controller & Order Creation - NextPay 7
 import { db, auth } from './firebase-config.js';
 import { 
   collection, 
@@ -339,4 +339,5 @@ class CheckoutController {
 }
 
 export const checkoutController = new CheckoutController();
+
 

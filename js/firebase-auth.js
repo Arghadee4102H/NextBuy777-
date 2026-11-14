@@ -1,4 +1,4 @@
-// Customer Authentication & Profile Management - NextBuy 77
+﻿// Customer Authentication & Profile Management - NextPay 7
 import { auth, db } from './firebase-config.js';
 import { 
   GoogleAuthProvider, 
@@ -31,7 +31,7 @@ export function detectInAppBrowser() {
  */
 export async function signInWithGoogle() {
   if (detectInAppBrowser()) {
-    showToast('Please open NextBuy 77 in Chrome or Safari to complete Google Sign-In.', 'warning', 6000);
+    showToast('Please open NextPay 7 in Chrome or Safari to complete Google Sign-In.', 'warning', 6000);
     return null;
   }
 
@@ -149,4 +149,5 @@ export async function customerSignOut() {
   showToast('Signed out successfully.', 'info');
   window.location.href = 'index.html';
 }
+
 

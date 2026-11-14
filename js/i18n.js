@@ -1,30 +1,24 @@
-// Internationalization (i18n) Engine - NextBuy 77
+// Internationalization (i18n) Engine - NextPay 7 (English Strictly)
 
-const SUPPORTED_LANGUAGES = ['en', 'bn', 'hi'];
+const SUPPORTED_LANGUAGES = ['en'];
 const DEFAULT_LANGUAGE = 'en';
-const STORAGE_KEY = 'nextbuy77_lang';
+const STORAGE_KEY = 'nextpay7_lang';
 
 class I18nManager {
   constructor() {
-    this.currentLanguage = this.getStoredLanguage();
+    this.currentLanguage = 'en';
     this.dictionaries = {};
     this.fallbackDictionary = null;
   }
 
   getStoredLanguage() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return SUPPORTED_LANGUAGES.includes(stored) ? stored : DEFAULT_LANGUAGE;
+    return 'en';
   }
 
   async init() {
-    // Load default language and fallback
+    // Exclusively English across the entire site
     await this.loadDictionary('en');
     this.fallbackDictionary = this.dictionaries['en'];
-
-    if (this.currentLanguage !== 'en') {
-      await this.loadDictionary(this.currentLanguage);
-    }
-
     this.applyTranslations();
   }
 
@@ -41,12 +35,8 @@ class I18nManager {
   }
 
   async setLanguage(lang) {
-    if (!SUPPORTED_LANGUAGES.includes(lang)) return;
-    this.currentLanguage = lang;
-    localStorage.setItem(STORAGE_KEY, lang);
-    await this.loadDictionary(lang);
+    this.currentLanguage = 'en';
     this.applyTranslations();
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang } }));
   }
 
   t(path) {
