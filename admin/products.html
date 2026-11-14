@@ -143,15 +143,23 @@
           </div>
         </div>
 
-        <!-- Primary Image URL / Embed Code -->
-        <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-            Product Image (HTML Embed Code or Direct URL)
-          </label>
-          <textarea id="prod-image-url" rows="2" class="search-input" style="border-radius: var(--radius-md); resize: vertical; font-family: monospace; font-size: 12px;" placeholder="Paste HTML embed code (e.g. from ImgBB: <a ...><img src='...' /></a>) or direct URL"></textarea>
-          <div id="prod-img-preview-wrap" style="margin-top: 8px; display: none; align-items: center; gap: 10px;">
-            <img id="prod-img-preview" src="" alt="Preview" style="height: 60px; width: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
-            <span style="font-size: 12px; color: var(--color-success); font-weight: 600;">✓ Image code recognized</span>
+        <!-- Product Images Management (1 to 5 Images, HTML embed code supported) -->
+        <div style="margin-bottom: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px; background: #FAF9F6;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="font-size: 13px; font-weight: 700;">Product Images (Up to 5 images, at least 1 required) *</label>
+            <span style="font-size: 11px; color: var(--color-text-muted);">ImgBB HTML embed codes or direct URLs</span>
+          </div>
+
+          <!-- Dynamic Images Container -->
+          <div id="product-images-container" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Slots injected dynamically -->
+          </div>
+
+          <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" id="add-product-image-btn" class="btn btn-secondary btn-sm" style="font-size: 12px;">
+              + Add New Product Image
+            </button>
+            <span id="image-count-hint" style="font-size: 11px; color: var(--color-text-muted);">1 / 5 images</span>
           </div>
         </div>
 
@@ -210,19 +218,11 @@
       adminAuth.protectPage();
       await productManager.init();
 
-      // Live Image Code / Embed Parser & Preview
-      const imgInput = document.getElementById('prod-image-url');
-      const previewWrap = document.getElementById('prod-img-preview-wrap');
-      const previewImg = document.getElementById('prod-img-preview');
-      if (imgInput && previewWrap && previewImg) {
-        imgInput.addEventListener('input', () => {
-          const extracted = extractImageUrl(imgInput.value);
-          if (extracted) {
-            previewImg.src = extracted;
-            previewWrap.style.display = 'flex';
-          } else {
-            previewWrap.style.display = 'none';
-          }
+      // Dynamic Product Images Button
+      const addImgSlotBtn = document.getElementById('add-product-image-btn');
+      if (addImgSlotBtn) {
+        addImgSlotBtn.addEventListener('click', () => {
+          productManager.addImageSlot();
         });
       }
 
@@ -246,7 +246,13 @@
         e.preventDefault();
         const catSelect = document.getElementById('prod-category');
         const selectedCatName = catSelect.options[catSelect.selectedIndex]?.text || '';
-        const imgUrl = document.getElementById('prod-image-url').value.trim();
+        
+        // Multi-image collection (up to 5 images, at least 1 required)
+        const slotImages = productManager.getImagesFromSlots();
+        if (slotImages.length === 0) {
+          showToast('At least one product image is required. Please paste an image URL or embed code.', 'warning');
+          return;
+        }
 
         const formData = {
           nameEn: document.getElementById('prod-name-en').value,
@@ -258,7 +264,7 @@
           priceRupees: document.getElementById('prod-price').value,
           origPriceRupees: document.getElementById('prod-orig-price').value,
           stock: document.getElementById('prod-stock').value,
-          images: imgUrl ? [imgUrl] : ['/assets/images/logo.jpeg'],
+          images: slotImages,
           sellerName: document.getElementById('prod-seller-name')?.value,
           dispatchSlaHours: document.getElementById('prod-dispatch-sla')?.value,
           returnPolicy: document.getElementById('prod-return-policy')?.value,
@@ -268,7 +274,11 @@
           newArrival: document.getElementById('prod-new').checked
         };
 
-        await productManager.saveProduct(formData);
+        try {
+          await productManager.saveProduct(formData);
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
       });
     });
   </script>

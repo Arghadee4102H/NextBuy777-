@@ -95,14 +95,15 @@ export function validateUtr(utr) {
 }
 
 /**
- * Validate 6-digit Indian PIN Code
+ * Validate PIN Code format
+ * Supports standard Indian PIN codes as well as custom configured numeric/alphanumeric PINs
  * @param {string} pin 
  * @returns {boolean}
  */
 export function validatePinCode(pin) {
   if (!pin) return false;
   const cleaned = pin.toString().trim();
-  return /^[1-9][0-9]{5}$/.test(cleaned);
+  return /^[0-9A-Za-z]{3,10}$/.test(cleaned);
 }
 
 /**

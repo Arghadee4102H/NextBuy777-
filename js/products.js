@@ -490,6 +490,163 @@ class ProductManager {
       }
     }
   }
+
+  /**
+   * Render Horizontally Scrollable Category Pills Bar
+   */
+  async renderCategoryPills(containerId = 'category-pills-bar', activeId = 'all', onSelect = null) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const categories = await this.getCategories();
+    let pillsHtml = `
+      <button class="category-pill ${activeId === 'all' ? 'active' : ''}" data-cat-id="all">
+        🏷️ All Categories
+      </button>
+    `;
+
+    if (categories.length > 0) {
+      categories.forEach(cat => {
+        const name = this.getLocalizedText(cat.name) || cat.id;
+        pillsHtml += `
+          <button class="category-pill ${activeId === cat.id ? 'active' : ''}" data-cat-id="${cat.id}">
+            ${escapeHtml(name)}
+          </button>
+        `;
+      });
+    } else {
+      const defaults = [
+        { id: 'fashion', name: 'Fashion & Accessories', icon: '👗' },
+        { id: 'jewellery', name: 'Imitation Jewellery', icon: '💎' },
+        { id: 'perfumes', name: 'Perfumes & Lifestyle', icon: '🌸' }
+      ];
+      defaults.forEach(d => {
+        pillsHtml += `
+          <button class="category-pill ${activeId === d.id ? 'active' : ''}" data-cat-id="${d.id}">
+            ${d.icon} ${d.name}
+          </button>
+        `;
+      });
+    }
+
+    container.innerHTML = `<div class="category-pills-bar">${pillsHtml}</div>`;
+
+    container.querySelectorAll('.category-pill').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const catId = e.currentTarget.getAttribute('data-cat-id');
+        container.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        if (typeof onSelect === 'function') onSelect(catId);
+      });
+    });
+  }
+
+  /**
+   * Render Store Catalog Organized By Category
+   * Multiple rows (top and bottom), all products arranged side-by-side.
+   * Users can scroll both horizontally within rows and vertically through category collections.
+   */
+  async renderCatalogByCategories(containerId = 'catalog-products-grid', searchQuery = '', selectedCategoryId = 'all') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const categories = await this.getCategories();
+    const products = await this.getProducts();
+
+    let filteredProducts = products;
+    if (searchQuery) {
+      const lower = searchQuery.toLowerCase();
+      filteredProducts = products.filter(p => {
+        const name = this.getLocalizedText(p.name).toLowerCase();
+        const sku = (p.sku || '').toLowerCase();
+        return name.includes(lower) || sku.includes(lower);
+      });
+    }
+
+    if (selectedCategoryId && selectedCategoryId !== 'all') {
+      filteredProducts = filteredProducts.filter(p => p.categoryId === selectedCategoryId);
+    }
+
+    // If completely empty database, render default category shelves with user requested placeholders
+    if (filteredProducts.length === 0) {
+      const defaultShelves = [
+        { id: 'cat-fashion', title: 'Fashion Accessories' },
+        { id: 'cat-jewellery', title: 'Imitation Jewellery' },
+        { id: 'cat-perfumes', title: 'Perfumes & Fragrances' }
+      ];
+
+      container.innerHTML = defaultShelves.map(shelf => `
+        <div id="${shelf.id}" style="margin-bottom: 32px;"></div>
+      `).join('');
+
+      defaultShelves.forEach(shelf => {
+        this.renderCategoryTwoRowSlider(shelf.id, [], shelf.title);
+      });
+      return;
+    }
+
+    // Group products by category
+    const categoryMap = new Map();
+
+    if (categories.length > 0) {
+      categories.forEach(cat => {
+        categoryMap.set(cat.id, {
+          title: this.getLocalizedText(cat.name) || cat.id,
+          products: []
+        });
+      });
+    }
+
+    const unassigned = [];
+    filteredProducts.forEach(p => {
+      if (p.categoryId && categoryMap.has(p.categoryId)) {
+        categoryMap.get(p.categoryId).products.push(p);
+      } else if (p.categoryName) {
+        let found = false;
+        for (const [id, val] of categoryMap.entries()) {
+          if (val.title.toLowerCase() === p.categoryName.toLowerCase()) {
+            val.products.push(p);
+            found = true;
+            break;
+          }
+        }
+        if (!found) unassigned.push(p);
+      } else {
+        unassigned.push(p);
+      }
+    });
+
+    let shelvesHtml = '';
+    let shelfIndex = 0;
+
+    for (const [catId, group] of categoryMap.entries()) {
+      if (group.products.length > 0) {
+        const shelfDomId = `shelf-${catId}-${shelfIndex++}`;
+        shelvesHtml += `<div id="${shelfDomId}" style="margin-bottom: 36px;"></div>`;
+      }
+    }
+
+    if (unassigned.length > 0) {
+      const unassignedId = `shelf-unassigned-${shelfIndex++}`;
+      shelvesHtml += `<div id="${unassignedId}" style="margin-bottom: 36px;"></div>`;
+    }
+
+    container.innerHTML = shelvesHtml;
+
+    // Render two-row slider for each populated shelf
+    shelfIndex = 0;
+    for (const [catId, group] of categoryMap.entries()) {
+      if (group.products.length > 0) {
+        const shelfDomId = `shelf-${catId}-${shelfIndex++}`;
+        this.renderCategoryTwoRowSlider(shelfDomId, group.products, group.title);
+      }
+    }
+
+    if (unassigned.length > 0) {
+      const unassignedId = `shelf-unassigned-${shelfIndex++}`;
+      this.renderCategoryTwoRowSlider(unassignedId, unassigned, 'More Curated Lifestyle Products');
+    }
+  }
 }
 
 export const productManager = new ProductManager();

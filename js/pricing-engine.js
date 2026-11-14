@@ -1,7 +1,7 @@
 // Pricing Engine & Delivery Precedence Rules - NextBuy 77
 // All money values are calculated and stored in INTEGER PAISE (1 INR = 100 paise)
 import { db } from './firebase-config.js';
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /**
  * Standard rounding rule: Round half up per line item
@@ -24,31 +24,72 @@ export function generateIdempotencyKey() {
 
 /**
  * Check PIN Code Serviceability and Retrieve Delivery Settings
- * @param {string} pinCode 6-digit Indian PIN Code
- * @returns {Promise<{ serviceable: boolean, pinData: Object|null }>}
+ * STRICT RULE: Orders can ONLY be placed using PIN codes configured in the admin panel (/pinCodes collection).
+ * If a PIN code is not in the system or inactive, delivery is marked strictly unserviceable.
+ * @param {string} pinCode e.g. '7000' or '700001'
+ * @returns {Promise<{ serviceable: boolean, pinData: Object|null, message?: string, reason?: string }>}
  */
 export async function checkPinServiceability(pinCode) {
-  if (!pinCode || !/^[1-9][0-9]{5}$/.test(pinCode.toString().trim())) {
-    return { serviceable: false, pinData: null, reason: 'invalid_format' };
+  if (!pinCode) {
+    return { serviceable: false, pinData: null, reason: 'Please enter a PIN code to check service availability.' };
   }
 
   const pinDocId = pinCode.toString().trim();
+  if (pinDocId.length < 3) {
+    return { serviceable: false, pinData: null, reason: 'Please enter a valid PIN code.' };
+  }
+
   try {
+    // 1. Direct doc ID lookup in pinCodes collection
     const pinRef = doc(db, 'pinCodes', pinDocId);
     const snap = await getDoc(pinRef);
 
     if (snap.exists()) {
       const data = snap.data();
       if (data.active !== false) {
-        return { serviceable: true, pinData: data };
+        return { 
+          serviceable: true, 
+          pinData: data, 
+          message: `Congratulations, orders can be placed for your PIN code ${pinDocId}!` 
+        };
+      } else {
+        return { 
+          serviceable: false, 
+          pinData: null, 
+          reason: `Service unavailable: PIN code ${pinDocId} is currently not accepting new orders.` 
+        };
+      }
+    }
+
+    // 2. Fallback query matching pinCode field (in case document ID differs)
+    const q = query(collection(db, 'pinCodes'), where('pinCode', '==', pinDocId));
+    const querySnap = await getDocs(q);
+    if (!querySnap.empty) {
+      const docData = querySnap.docs[0].data();
+      if (docData.active !== false) {
+        return { 
+          serviceable: true, 
+          pinData: docData, 
+          message: `Congratulations, orders can be placed for your PIN code ${pinDocId}!` 
+        };
+      } else {
+        return { 
+          serviceable: false, 
+          pinData: null, 
+          reason: `Service unavailable: PIN code ${pinDocId} is currently not accepting new orders.` 
+        };
       }
     }
   } catch (err) {
-    console.warn('PIN Code check falling back to default rules', err);
+    console.warn('Error verifying PIN Code with Firebase pinCodes collection:', err);
   }
 
-  // If no specific restriction document exists, default fallback checks global delivery settings
-  return { serviceable: true, pinData: { chargePaise: 5000, active: true } };
+  // Not configured in the admin panel -> Service unavailable
+  return { 
+    serviceable: false, 
+    pinData: null, 
+    reason: `Service unavailable: Orders cannot be placed for PIN code "${pinDocId}". We currently do not service this location.` 
+  };
 }
 
 /**

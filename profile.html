@@ -24,27 +24,105 @@
         </div>
       </div>
     </div>
-    <div class="container header-main">
+    <div class="container header-main-nav">
+      <!-- Website Logo & Name -->
       <div class="brand-logo-wrap">
-        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
-          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+        <a href="index.html" class="brand-link">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77" class="brand-logo" onerror="this.style.display='none'">
           <div class="brand-text">
             <span class="brand-name">NextBuy 77</span>
             <span class="brand-tagline">Buy Next. Buy Better.</span>
           </div>
         </a>
       </div>
-      <div class="header-actions">
-        <a href="index.html" class="action-btn" data-i18n="nav.home">Home</a>
-        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
-        <a href="cart.html" class="action-btn">
-          <span>🛒</span>
-          <span data-i18n="nav.cart">Cart</span>
+
+      <!-- Prominent Search Bar -->
+      <div class="header-search-wrap">
+        <form class="header-search-form" action="products.html" method="GET">
+          <input type="text" name="q" class="search-input" placeholder="Search fashion, jewellery, perfumes..." data-i18n-placeholder="nav.searchPlaceholder" aria-label="Search products">
+          <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
+        </form>
+      </div>
+
+      <!-- Right Action & Hamburger Menu Icon -->
+      <div class="header-right-actions">
+        <a href="cart.html" class="header-cart-icon-btn" aria-label="Shopping Cart">
+          <span style="font-size: 20px;">🛒</span>
           <span class="cart-badge" id="cart-badge">0</span>
         </a>
+
+        <!-- Hamburger Icon (Three Lines ☰) -->
+        <button id="menu-toggle-btn" class="menu-hamburger-btn" aria-label="Open Navigation Menu">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- Slide-in Navigation Drawer -->
+  <div id="nav-drawer-backdrop" class="drawer-backdrop" style="display: none;"></div>
+  <nav id="nav-drawer" class="nav-drawer" aria-label="Navigation Menu">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/images/logo.jpeg" alt="NextBuy 77" style="height: 32px; width: auto; border-radius: 4px;">
+        <div>
+          <strong style="display: block; font-size: 15px;">NextBuy 77</strong>
+          <span style="font-size: 11px; color: var(--color-text-muted);">Buy Next. Buy Better.</span>
+        </div>
+      </div>
+      <button id="close-drawer-btn" class="drawer-close-btn" aria-label="Close Menu">&times;</button>
+    </div>
+
+    <div class="drawer-user-strip" id="drawer-user-info">
+      <div style="font-size: 13px; font-weight: 600;" id="drawer-user-name">Welcome, Guest</div>
+      <a href="login.html" id="drawer-login-link" style="font-size: 12px; color: var(--color-primary); text-decoration: underline;">Sign In to your account</a>
+    </div>
+
+    <ul class="drawer-menu-links">
+      <li>
+        <a href="index.html" class="drawer-link">
+          <span class="drawer-link-icon">🏠</span>
+          <span>Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="products.html" class="drawer-link">
+          <span class="drawer-link-icon">🛍️</span>
+          <span>Products</span>
+        </a>
+      </li>
+      <li>
+        <a href="cart.html" class="drawer-link">
+          <span class="drawer-link-icon">🛒</span>
+          <span>My Cart</span>
+        </a>
+      </li>
+      <li>
+        <a href="profile.html" class="drawer-link" id="drawer-profile-link">
+          <span class="drawer-link-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="profile.html#orders" class="drawer-link" id="drawer-orders-link">
+          <span class="drawer-link-icon">📦</span>
+          <span>Order History</span>
+        </a>
+      </li>
+      <li>
+        <a href="terms.html" class="drawer-link">
+          <span class="drawer-link-icon">📜</span>
+          <span>Terms & Conditions</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="drawer-footer">
+      <button id="drawer-signout-btn" class="btn btn-secondary btn-block" style="display: none; font-size: 13px;">Sign Out</button>
+    </div>
+  </nav>
 
   <main class="site-main container" style="margin-top: var(--space-8); margin-bottom: var(--space-12);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); padding-bottom: var(--space-3); border-bottom: 2px solid var(--color-border); flex-wrap: wrap; gap: 12px;">
@@ -216,10 +294,12 @@
     import { profileController } from './js/profile.js';
     import { customerSignOut } from './js/firebase-auth.js';
     import { showToast } from './js/utils.js';
+    import { initNavigation } from './js/navigation.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
       securityDeterrents.init();
+      initNavigation();
       cartManager.updateCartBadge();
 
       onAuthStateChanged(auth, async (user) => {

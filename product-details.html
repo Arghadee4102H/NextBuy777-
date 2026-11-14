@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Details — NextBuy 77</title>
-  <meta name="description" content="View product specifications, pricing, reviews, and purchase options on NextBuy 77.">
+  <meta name="description" content="View product specifications, pricing, delivery availability, and order lifestyle accessories from NextBuy 77.">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/anti-copy.css">
+  <link rel="icon" type="image/jpeg" href="assets/images/logo.jpeg">
 </head>
 <body>
-  <!-- Site Header -->
+  <!-- Header with Prominent Search and Hamburger Menu -->
   <header class="site-header">
-    <div class="header-top">
-      <div class="container header-top-content">
-        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+    <div class="header-top-bar">
+      <div class="container header-top-inner">
+        <span class="delivery-notice-text">Official Store of NextBuy 77 &bull; Buy Next. Buy Better.</span>
         <div class="lang-selector-wrap">
-          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
-          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+          <label for="lang-select" style="font-size: 12px; opacity: 0.8;">🌐 Language:</label>
+          <select id="lang-select" class="lang-select">
             <option value="en">English</option>
             <option value="bn">বাংলা (Bengali)</option>
             <option value="hi">हिन्दी (Hindi)</option>
@@ -24,10 +24,12 @@
         </div>
       </div>
     </div>
-    <div class="container header-main">
+
+    <div class="container header-main-nav">
+      <!-- Website Logo & Name -->
       <div class="brand-logo-wrap">
-        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
-          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+        <a href="index.html" class="brand-link">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77" class="brand-logo" onerror="this.style.display='none'">
           <div class="brand-text">
             <span class="brand-name">NextBuy 77</span>
             <span class="brand-tagline">Buy Next. Buy Better.</span>
@@ -35,35 +37,98 @@
         </a>
       </div>
 
-      <!-- Search Bar -->
-      <div class="header-search">
+      <!-- Prominent Search Bar (Fills available space) -->
+      <div class="header-search-wrap">
         <form class="header-search-form" action="products.html" method="GET">
           <input type="text" name="q" class="search-input" placeholder="Search fashion, jewellery, perfumes..." data-i18n-placeholder="nav.searchPlaceholder" aria-label="Search products">
           <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
         </form>
       </div>
 
-      <!-- Header Actions -->
-      <div class="header-actions">
-        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
-        <a href="profile.html" class="action-btn" id="user-nav-btn">
-          <span>👤</span>
-          <span data-i18n="nav.login">Sign In</span>
-        </a>
-        <a href="cart.html" class="action-btn" style="background-color: var(--color-bg-subtle);">
-          <span>🛒</span>
-          <span data-i18n="nav.cart">Cart</span>
+      <!-- Right Action & Hamburger Menu Icon -->
+      <div class="header-right-actions">
+        <a href="cart.html" class="header-cart-icon-btn" aria-label="Shopping Cart">
+          <span style="font-size: 20px;">🛒</span>
           <span class="cart-badge" id="cart-badge">0</span>
         </a>
+
+        <!-- Hamburger Icon (Three Lines ☰) -->
+        <button id="menu-toggle-btn" class="menu-hamburger-btn" aria-label="Open Navigation Menu">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
     </div>
   </header>
 
-  <main class="site-main container" style="margin-top: var(--space-8);">
-    <div id="product-details-container" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-sm);">
-      <!-- Dynamic product details or placeholder layout -->
+  <!-- Slide-in Navigation Drawer -->
+  <div id="nav-drawer-backdrop" class="drawer-backdrop" style="display: none;"></div>
+  <nav id="nav-drawer" class="nav-drawer" aria-label="Navigation Menu">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/images/logo.jpeg" alt="NextBuy 77" style="height: 32px; width: auto; border-radius: 4px;">
+        <div>
+          <strong style="display: block; font-size: 15px;">NextBuy 77</strong>
+          <span style="font-size: 11px; color: var(--color-text-muted);">Buy Next. Buy Better.</span>
+        </div>
+      </div>
+      <button id="close-drawer-btn" class="drawer-close-btn" aria-label="Close Menu">&times;</button>
+    </div>
+
+    <div class="drawer-user-strip" id="drawer-user-info">
+      <div style="font-size: 13px; font-weight: 600;" id="drawer-user-name">Welcome, Guest</div>
+      <a href="login.html" id="drawer-login-link" style="font-size: 12px; color: var(--color-primary); text-decoration: underline;">Sign In to your account</a>
+    </div>
+
+    <ul class="drawer-menu-links">
+      <li>
+        <a href="index.html" class="drawer-link">
+          <span class="drawer-link-icon">🏠</span>
+          <span>Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="products.html" class="drawer-link">
+          <span class="drawer-link-icon">🛍️</span>
+          <span>Products</span>
+        </a>
+      </li>
+      <li>
+        <a href="cart.html" class="drawer-link">
+          <span class="drawer-link-icon">🛒</span>
+          <span>My Cart</span>
+        </a>
+      </li>
+      <li>
+        <a href="profile.html" class="drawer-link">
+          <span class="drawer-link-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="profile.html#orders" class="drawer-link">
+          <span class="drawer-link-icon">📦</span>
+          <span>Order History</span>
+        </a>
+      </li>
+      <li>
+        <a href="terms.html" class="drawer-link">
+          <span class="drawer-link-icon">📜</span>
+          <span>Terms & Conditions</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="drawer-footer">
+      <button id="drawer-signout-btn" class="btn btn-secondary btn-block" style="display: none; font-size: 13px;">Sign Out</button>
+    </div>
+  </nav>
+
+  <main class="site-main container" style="margin-top: var(--space-8); margin-bottom: var(--space-8);">
+    <div id="product-details-container" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-8);">
-        <!-- Image Gallery Area -->
+        <!-- Image Gallery Area (Supports up to 5 images) -->
         <div>
           <div id="main-image-wrap" style="width: 100%; aspect-ratio: 1/1; background: var(--color-bg-subtle); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border);">
             <div id="placeholder-gallery" style="text-align: center; color: var(--color-text-light);">
@@ -72,13 +137,14 @@
             </div>
             <img id="main-product-img" src="" alt="Product" style="display:none; width: 100%; height: 100%; object-fit: cover;">
           </div>
-          <div id="gallery-thumbs" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto;"></div>
+          <!-- Thumbnails Row -->
+          <div id="gallery-thumbs" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;"></div>
         </div>
 
         <!-- Product Info Area -->
         <div style="display: flex; flex-direction: column;">
           <span id="product-category-label" style="text-transform: uppercase; font-size: 13px; color: var(--color-accent); font-weight: 600; letter-spacing: 0.5px;" data-i18n="home.productPlaceholderCategory">Category</span>
-          <h1 id="product-title" style="margin-top: 6px; margin-bottom: 12px;" data-i18n="home.productPlaceholderTitle">Product</h1>
+          <h1 id="product-title" style="margin-top: 6px; margin-bottom: 12px; font-size: 24px;" data-i18n="home.productPlaceholderTitle">Product</h1>
           
           <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;">
             <span id="product-price" style="font-size: 2rem; font-weight: 700; color: var(--color-primary);" data-i18n="home.productPlaceholderPrice">₹0.00</span>
@@ -115,6 +181,20 @@
             <p id="product-description" style="color: var(--color-text-muted); font-size: 14px; line-height: 1.6;">
               Product details, specifications, and descriptions are managed dynamically via the Admin Panel.
             </p>
+          </div>
+
+          <!-- Delivery PIN Code Availability Verification (Directly Below Description) -->
+          <div class="pincode-verifier-card" style="margin-top: 20px; padding: 16px; background: var(--color-bg-subtle, #FAF8F5); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span style="font-size: 18px;">📍</span>
+              <strong style="font-size: 14px;">Verify Delivery PIN Code</strong>
+            </div>
+            <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">Enter your PIN code to check if orders can be placed for your location.</p>
+            <div style="display: flex; gap: 8px; max-width: 360px;">
+              <input type="text" id="pincode-check-input" placeholder="Enter PIN code (e.g. 7000)" style="flex: 1; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 14px;">
+              <button id="pincode-check-btn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; font-weight: 600;">Check</button>
+            </div>
+            <div id="pincode-result-msg" style="display: none; margin-top: 10px; font-size: 13px; font-weight: 500; padding: 8px 12px; border-radius: var(--radius-sm); line-height: 1.4;"></div>
           </div>
         </div>
       </div>
@@ -166,23 +246,23 @@
     import { i18n } from './js/i18n.js';
     import { securityDeterrents } from './js/security-deterrents.js';
     import { cartManager } from './js/cart.js';
-    import { db, auth } from './js/firebase-config.js';
+    import { db } from './js/firebase-config.js';
     import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { formatCurrency, showToast, extractImageUrl } from './js/utils.js';
+    import { formatCurrency, showToast, extractImageUrl, escapeHtml } from './js/utils.js';
+    import { checkPinServiceability } from './js/pricing-engine.js';
+    import { initNavigation } from './js/navigation.js';
 
     let currentProduct = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
       await i18n.init();
       securityDeterrents.init();
+      initNavigation();
 
       const langSelect = document.getElementById('lang-select');
       if (langSelect) {
         langSelect.addEventListener('change', (e) => i18n.setLanguage(e.target.value));
       }
-
-      cartManager.updateCartBadge();
 
       // Check URL query parameters for product ID
       const urlParams = new URLSearchParams(window.location.search);
@@ -207,7 +287,6 @@
         if (currentProduct) {
           cartManager.addItem(currentProduct, qty);
         } else {
-          // Placeholder product
           cartManager.addItem({ id: 'sample_placeholder', name: { en: 'Product' }, pricePaise: 0 }, qty);
         }
       });
@@ -223,16 +302,49 @@
         window.location.href = 'checkout.html';
       });
 
-      onAuthStateChanged(auth, (user) => {
-        const userBtn = document.getElementById('user-nav-btn');
-        if (userBtn) {
-          if (user) {
-            userBtn.innerHTML = `<span>👤</span> <span>${user.displayName ? user.displayName.split(' ')[0] : 'Profile'}</span>`;
-            userBtn.href = 'profile.html';
-          } else {
-            userBtn.innerHTML = `<span>👤</span> <span data-i18n="nav.login">${i18n.t('nav.login')}</span>`;
-            userBtn.href = 'login.html?redirect=' + encodeURIComponent('product-details.html' + window.location.search);
-          }
+      // PIN Code Availability Verification Handler
+      const pinBtn = document.getElementById('pincode-check-btn');
+      const pinInput = document.getElementById('pincode-check-input');
+      const pinMsg = document.getElementById('pincode-result-msg');
+
+      const performPinCheck = async () => {
+        const pinCode = pinInput.value.trim();
+        if (!pinCode) {
+          pinMsg.style.display = 'block';
+          pinMsg.style.background = '#FFF3CD';
+          pinMsg.style.color = '#856404';
+          pinMsg.style.border = '1px solid #FFEEBA';
+          pinMsg.textContent = 'Please enter a PIN code to check service availability.';
+          return;
+        }
+
+        pinMsg.style.display = 'block';
+        pinMsg.style.background = '#EEF2F6';
+        pinMsg.style.color = '#333333';
+        pinMsg.style.border = '1px solid #D9D2CA';
+        pinMsg.textContent = 'Checking availability with admin records...';
+
+        const result = await checkPinServiceability(pinCode);
+
+        if (result.serviceable) {
+          pinMsg.style.background = '#D4EDDA';
+          pinMsg.style.color = '#155724';
+          pinMsg.style.border = '1px solid #C3E6CB';
+          const loc = result.pinData?.district ? ` (${result.pinData.district}, ${result.pinData.state || ''})` : '';
+          pinMsg.innerHTML = `🎉 <strong>Congratulations, orders can be placed for your PIN code ${escapeHtml(pinCode)}!</strong>${escapeHtml(loc)} Delivery is active for this location.`;
+        } else {
+          pinMsg.style.background = '#F8D7DA';
+          pinMsg.style.color = '#721C24';
+          pinMsg.style.border = '1px solid #F5C6CB';
+          pinMsg.innerHTML = `❌ <strong>Service unavailable</strong>: Orders cannot be placed for PIN code <strong>${escapeHtml(pinCode)}</strong>. We currently do not service this location.`;
+        }
+      };
+
+      pinBtn.addEventListener('click', performPinCheck);
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          performPinCheck();
         }
       });
     });
@@ -245,11 +357,50 @@
       const price = prod.pricePaise ? formatCurrency(prod.pricePaise) : (prod.price ? `₹${prod.price}` : '₹0.00');
       document.getElementById('product-price').textContent = price;
 
-      if (prod.images && prod.images.length > 0) {
-        const mainImg = document.getElementById('main-product-img');
-        mainImg.src = extractImageUrl(prod.images[0]);
+      if (prod.originalPricePaise && prod.originalPricePaise > prod.pricePaise) {
+        const origEl = document.getElementById('product-orig-price');
+        origEl.textContent = formatCurrency(prod.originalPricePaise);
+        origEl.style.display = 'inline';
+
+        if (prod.discountPercent) {
+          const discEl = document.getElementById('product-discount-tag');
+          discEl.textContent = `${prod.discountPercent}% OFF`;
+          discEl.style.display = 'inline-block';
+        }
+      }
+
+      // Multi-image gallery handling (up to 5 images)
+      const rawImages = (prod.images && prod.images.length > 0) ? prod.images : [];
+      const cleanImages = rawImages.map(img => extractImageUrl(img)).filter(Boolean);
+
+      const mainImg = document.getElementById('main-product-img');
+      const placeholder = document.getElementById('placeholder-gallery');
+      const thumbsContainer = document.getElementById('gallery-thumbs');
+
+      if (cleanImages.length > 0) {
+        mainImg.src = cleanImages[0];
         mainImg.style.display = 'block';
-        document.getElementById('placeholder-gallery').style.display = 'none';
+        placeholder.style.display = 'none';
+
+        // If multiple images exist, render clickable thumbnails
+        if (cleanImages.length > 1) {
+          thumbsContainer.innerHTML = '';
+          cleanImages.forEach((imgUrl, idx) => {
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = `thumb-item ${idx === 0 ? 'active' : ''}`;
+            thumbDiv.innerHTML = `<img src="${escapeHtml(imgUrl)}" alt="Product Image ${idx + 1}">`;
+
+            thumbDiv.addEventListener('click', () => {
+              mainImg.src = imgUrl;
+              thumbsContainer.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+              thumbDiv.classList.add('active');
+            });
+
+            thumbsContainer.appendChild(thumbDiv);
+          });
+        } else {
+          thumbsContainer.innerHTML = '';
+        }
       }
 
       if (prod.description) {
@@ -260,4 +411,3 @@
   </script>
 </body>
 </html>
-

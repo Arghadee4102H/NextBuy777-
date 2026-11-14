@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NextBuy 77 — Buy Next. Buy Better.</title>
-  <meta name="description" content="NextBuy 77 is your destination for fashion accessories, imitation jewellery, perfumes, and lifestyle products. Buy Next. Buy Better.">
+  <meta name="description" content="NextBuy 77 is an online shopping business offering fashion accessories, imitation jewellery, perfumes, and other lifestyle products. Tagline: Buy Next. Buy Better.">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/anti-copy.css">
+  <link rel="icon" type="image/jpeg" href="assets/images/logo.jpeg">
 </head>
 <body>
-  <!-- Site Header -->
+  <!-- Header with Prominent Search and Hamburger Menu -->
   <header class="site-header">
-    <div class="header-top">
-      <div class="container header-top-content">
-        <span data-i18n="brand.tagline">Buy Next. Buy Better.</span>
+    <div class="header-top-bar">
+      <div class="container header-top-inner">
+        <span class="delivery-notice-text">Official Store of NextBuy 77 &bull; Buy Next. Buy Better.</span>
         <div class="lang-selector-wrap">
-          <label for="lang-select" style="margin-right: 6px; font-size: 12px;">Language:</label>
-          <select id="lang-select" class="lang-selector-select" aria-label="Select Language">
+          <label for="lang-select" style="font-size: 12px; opacity: 0.8;">🌐 Language:</label>
+          <select id="lang-select" class="lang-select">
             <option value="en">English</option>
             <option value="bn">বাংলা (Bengali)</option>
             <option value="hi">हिन्दी (Hindi)</option>
@@ -24,10 +24,12 @@
         </div>
       </div>
     </div>
-    <div class="container header-main">
+
+    <div class="container header-main-nav">
+      <!-- Website Logo & Name -->
       <div class="brand-logo-wrap">
-        <a href="index.html" style="display: flex; align-items: center; gap: 12px;">
-          <img src="assets/images/logo.jpeg" alt="NextBuy 77 Logo" class="brand-logo" onerror="this.style.display='none'">
+        <a href="index.html" class="brand-link">
+          <img src="assets/images/logo.jpeg" alt="NextBuy 77" class="brand-logo" onerror="this.style.display='none'">
           <div class="brand-text">
             <span class="brand-name">NextBuy 77</span>
             <span class="brand-tagline">Buy Next. Buy Better.</span>
@@ -35,32 +37,96 @@
         </a>
       </div>
 
-      <!-- Search Bar -->
-      <div class="header-search">
+      <!-- Prominent Search Bar (Fills available space) -->
+      <div class="header-search-wrap">
         <form class="header-search-form" action="products.html" method="GET">
           <input type="text" name="q" class="search-input" placeholder="Search fashion, jewellery, perfumes..." data-i18n-placeholder="nav.searchPlaceholder" aria-label="Search products">
           <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
         </form>
       </div>
 
-      <!-- Header Actions -->
-      <div class="header-actions">
-        <a href="products.html" class="action-btn" data-i18n="nav.products">Products</a>
-        <a href="profile.html" class="action-btn" id="user-nav-btn">
-          <span>👤</span>
-          <span data-i18n="nav.login">Sign In</span>
-        </a>
-        <a href="cart.html" class="action-btn" style="background-color: var(--color-bg-subtle);">
-          <span>🛒</span>
-          <span data-i18n="nav.cart">Cart</span>
+      <!-- Right Action & Hamburger Menu Icon -->
+      <div class="header-right-actions">
+        <a href="cart.html" class="header-cart-icon-btn" aria-label="Shopping Cart">
+          <span style="font-size: 20px;">🛒</span>
           <span class="cart-badge" id="cart-badge">0</span>
         </a>
+
+        <!-- Hamburger Icon (Three Lines ☰) -->
+        <button id="menu-toggle-btn" class="menu-hamburger-btn" aria-label="Open Navigation Menu">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
       </div>
     </div>
   </header>
 
+  <!-- Slide-in Navigation Drawer -->
+  <div id="nav-drawer-backdrop" class="drawer-backdrop" style="display: none;"></div>
+  <nav id="nav-drawer" class="nav-drawer" aria-label="Navigation Menu">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="assets/images/logo.jpeg" alt="NextBuy 77" style="height: 32px; width: auto; border-radius: 4px;">
+        <div>
+          <strong style="display: block; font-size: 15px;">NextBuy 77</strong>
+          <span style="font-size: 11px; color: var(--color-text-muted);">Buy Next. Buy Better.</span>
+        </div>
+      </div>
+      <button id="close-drawer-btn" class="drawer-close-btn" aria-label="Close Menu">&times;</button>
+    </div>
+
+    <div class="drawer-user-strip" id="drawer-user-info">
+      <div style="font-size: 13px; font-weight: 600;" id="drawer-user-name">Welcome, Guest</div>
+      <a href="login.html" id="drawer-login-link" style="font-size: 12px; color: var(--color-primary); text-decoration: underline;">Sign In to your account</a>
+    </div>
+
+    <ul class="drawer-menu-links">
+      <li>
+        <a href="index.html" class="drawer-link">
+          <span class="drawer-link-icon">🏠</span>
+          <span>Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="products.html" class="drawer-link">
+          <span class="drawer-link-icon">🛍️</span>
+          <span>Products</span>
+        </a>
+      </li>
+      <li>
+        <a href="cart.html" class="drawer-link">
+          <span class="drawer-link-icon">🛒</span>
+          <span>My Cart</span>
+        </a>
+      </li>
+      <li>
+        <a href="profile.html" class="drawer-link">
+          <span class="drawer-link-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="profile.html#orders" class="drawer-link">
+          <span class="drawer-link-icon">📦</span>
+          <span>Order History</span>
+        </a>
+      </li>
+      <li>
+        <a href="terms.html" class="drawer-link">
+          <span class="drawer-link-icon">📜</span>
+          <span>Terms & Conditions</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="drawer-footer">
+      <button id="drawer-signout-btn" class="btn btn-secondary btn-block" style="display: none; font-size: 13px;">Sign Out</button>
+    </div>
+  </nav>
+
   <main class="site-main">
-    <!-- Top Banner Slider Section (User specification: Placeholders like "Banner" will appear where actual banners should be) -->
+    <!-- Top Banner Slider Section (Supports Auto & Manual Sliding) -->
     <section class="banner-section">
       <div class="container">
         <div id="banner-slider-container" class="banner-slider-container">
@@ -80,24 +146,20 @@
       <div class="container" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: var(--space-4); text-align: center;">
         <div><strong>💎 100% Curated Quality</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Fashion, Jewellery & Perfumes</span></div>
         <div><strong>⚡ Direct UPI Payment</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Instant verification via GPay/PhonePe</span></div>
-        <div><strong>📦 Fast & Reliable Shipping</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Pan-India delivery coverage</span></div>
+        <div><strong>📦 Fast & Reliable Shipping</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Authorized PIN Code delivery</span></div>
         <div><strong>🔒 Secure & Protected</strong><br><span style="font-size: 13px; color: var(--color-text-muted);">Direct admin order management</span></div>
       </div>
     </section>
 
-    <!-- Featured Products Section -->
+    <!-- Featured Highlights Section (Two Independent Horizontal Rows) -->
     <section class="container">
-      <div class="section-title-wrap">
-        <h2 class="section-title" data-i18n="home.featuredProducts">Featured Products</h2>
-        <a href="products.html" style="font-size: 14px; font-weight: 600;" data-i18n="home.allProducts">View All &rarr;</a>
-      </div>
       <div id="featured-grid">
         <!-- Rendered dynamically by products.js in two independent rows -->
       </div>
     </section>
 
-    <!-- All Products / Catalog Section -->
-    <section class="container" style="margin-top: var(--space-8);">
+    <!-- New Arrivals & Catalog Section (Two Independent Horizontal Rows) -->
+    <section class="container" style="margin-top: var(--space-6);">
       <div id="all-products-grid">
         <!-- Rendered dynamically by products.js in two independent rows -->
       </div>
@@ -150,13 +212,13 @@
     import { securityDeterrents } from './js/security-deterrents.js';
     import { productManager } from './js/products.js';
     import { cartManager } from './js/cart.js';
-    import { auth } from './js/firebase-config.js';
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initNavigation } from './js/navigation.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // 1. Initialize Localization & Anti-Copy
+      // 1. Initialize Localization, Anti-Copy, Navigation Drawer
       await i18n.init();
       securityDeterrents.init();
+      initNavigation();
 
       // 2. Language Selector
       const langSelect = document.getElementById('lang-select');
@@ -167,24 +229,9 @@
       // 3. Update Cart Badge Count
       cartManager.updateCartBadge();
 
-      // 4. Render Banners & Products
+      // 4. Render Banners & Category Showcases
       await productManager.refreshUI();
-
-      // 5. Auth State Listener for Navigation
-      onAuthStateChanged(auth, (user) => {
-        const userBtn = document.getElementById('user-nav-btn');
-        if (userBtn) {
-          if (user) {
-            userBtn.innerHTML = `<span>👤</span> <span>${user.displayName ? user.displayName.split(' ')[0] : 'Profile'}</span>`;
-            userBtn.href = 'profile.html';
-          } else {
-            userBtn.innerHTML = `<span>👤</span> <span data-i18n="nav.login">${i18n.t('nav.login')}</span>`;
-            userBtn.href = 'login.html?redirect=index.html';
-          }
-        }
-      });
     });
   </script>
 </body>
 </html>
-

@@ -183,6 +183,20 @@ class ProductManager {
     const rawImgInput = (formData.images && formData.images[0]) || '';
     const cleanImageUrl = extractImageUrl(rawImgInput) || 'assets/images/logo.jpeg';
 
+    // Multi-image collection & validation (Section requirement: 1 to 5 images, at least 1 required)
+    const rawImagesList = Array.isArray(formData.images) ? formData.images : (rawImgInput ? [rawImgInput] : []);
+    const cleanImages = [];
+    rawImagesList.forEach(img => {
+      const cleaned = extractImageUrl(img);
+      if (cleaned && !cleanImages.includes(cleaned)) {
+        cleanImages.push(cleaned);
+      }
+    });
+
+    if (cleanImages.length === 0) {
+      throw new Error('At least one product image is required. Please provide an image URL or HTML embed code.');
+    }
+
     const payload = {
       name: {
         en: formData.nameEn?.trim() || '',
@@ -201,7 +215,7 @@ class ProductManager {
       originalPricePaise,
       discountPercent,
       availableStock: stockQty,
-      images: [cleanImageUrl],
+      images: cleanImages,
       published: Boolean(formData.published),
       featured: Boolean(formData.featured),
       newArrival: Boolean(formData.newArrival),
@@ -292,16 +306,8 @@ class ProductManager {
         document.getElementById('prod-published').checked = Boolean(p.published);
         document.getElementById('prod-featured').checked = Boolean(p.featured);
         document.getElementById('prod-new').checked = Boolean(p.newArrival);
-        const currentImg = (p.images && p.images[0]) || '';
-        document.getElementById('prod-image-url').value = currentImg;
-        const previewWrap = document.getElementById('prod-img-preview-wrap');
-        const previewImg = document.getElementById('prod-img-preview');
-        if (currentImg && previewWrap && previewImg) {
-          previewImg.src = extractImageUrl(currentImg);
-          previewWrap.style.display = 'flex';
-        } else if (previewWrap) {
-          previewWrap.style.display = 'none';
-        }
+        // Populate multi-image slots
+        this.initImageSlots(p.images || []);
         
         // Seller rules
         if (document.getElementById('prod-seller-name')) {
@@ -317,6 +323,10 @@ class ProductManager {
     } else {
       document.getElementById('modal-title').textContent = 'Add New Product';
       document.getElementById('prod-published').checked = true;
+      
+      // Initialize single empty primary slot for new product
+      this.initImageSlots([]);
+
       if (document.getElementById('prod-seller-name')) {
         document.getElementById('prod-seller-name').value = 'NextBuy 77 Official Seller';
       }
@@ -329,6 +339,124 @@ class ProductManager {
     }
 
     modal.style.display = 'flex';
+  }
+
+  /**
+   * Initialize Multi-Image Upload Slots (1 up to 5 images)
+   */
+  initImageSlots(existingImages = []) {
+    const container = document.getElementById('product-images-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const list = (existingImages && existingImages.length > 0) ? existingImages.slice(0, 5) : [''];
+    list.forEach((img, idx) => {
+      this.addImageSlot(img, idx === 0);
+    });
+    this.updateImageSlotsUI();
+  }
+
+  /**
+   * Add a new image slot section (up to max 5)
+   */
+  addImageSlot(initialValue = '', isPrimary = false) {
+    const container = document.getElementById('product-images-container');
+    if (!container) return;
+
+    const currentSlots = container.querySelectorAll('.product-image-slot').length;
+    if (currentSlots >= 5) {
+      showToast('Maximum of 5 images allowed per product.', 'warning');
+      return;
+    }
+
+    const slotIndex = currentSlots + 1;
+    const isMain = isPrimary || slotIndex === 1;
+
+    const slotDiv = document.createElement('div');
+    slotDiv.className = 'product-image-slot';
+    slotDiv.style.cssText = 'background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px; position: relative;';
+
+    const cleanInitial = initialValue ? extractImageUrl(initialValue) : '';
+
+    slotDiv.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 12px; font-weight: 700; color: ${isMain ? 'var(--color-primary)' : 'var(--color-text-main)'};">
+          ${isMain ? '⭐ Primary Product Image (Main) *' : `Additional Image #${slotIndex}`}
+        </span>
+        ${!isMain ? `<button type="button" class="btn btn-sm btn-secondary remove-img-slot-btn" style="color: var(--color-danger); border-color: var(--color-danger); padding: 2px 8px; font-size: 11px;">✕ Remove Image</button>` : ''}
+      </div>
+      <textarea rows="2" class="search-input slot-img-input" style="border-radius: var(--radius-md); font-family: monospace; font-size: 11px; resize: vertical; width: 100%;" placeholder="Paste HTML embed code (e.g. from ImgBB) or direct image URL">${escapeHtml(initialValue)}</textarea>
+      <div class="slot-img-preview-wrap" style="margin-top: 6px; display: ${cleanInitial ? 'flex' : 'none'}; align-items: center; gap: 8px;">
+        <img class="slot-img-preview" src="${escapeHtml(cleanInitial)}" alt="Preview" style="height: 48px; width: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
+        <span style="font-size: 11px; color: var(--color-success); font-weight: 600;">✓ Image code recognized</span>
+      </div>
+    `;
+
+    const textarea = slotDiv.querySelector('.slot-img-input');
+    const previewWrap = slotDiv.querySelector('.slot-img-preview-wrap');
+    const previewImg = slotDiv.querySelector('.slot-img-preview');
+
+    textarea.addEventListener('input', () => {
+      const val = textarea.value.trim();
+      const clean = extractImageUrl(val);
+      if (clean) {
+        previewImg.src = clean;
+        previewWrap.style.display = 'flex';
+      } else {
+        previewWrap.style.display = 'none';
+      }
+    });
+
+    const removeBtn = slotDiv.querySelector('.remove-img-slot-btn');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => {
+        slotDiv.remove();
+        this.updateImageSlotsUI();
+      });
+    }
+
+    container.appendChild(slotDiv);
+    this.updateImageSlotsUI();
+  }
+
+  updateImageSlotsUI() {
+    const container = document.getElementById('product-images-container');
+    const addBtn = document.getElementById('add-product-image-btn');
+    const hint = document.getElementById('image-count-hint');
+    if (!container) return;
+
+    const count = container.querySelectorAll('.product-image-slot').length;
+    if (hint) hint.textContent = `${count} / 5 images`;
+
+    if (addBtn) {
+      addBtn.disabled = count >= 5;
+      if (count >= 5) {
+        addBtn.style.opacity = '0.5';
+        addBtn.title = 'Maximum 5 images reached';
+      } else {
+        addBtn.style.opacity = '1';
+        addBtn.title = 'Add another image';
+      }
+    }
+  }
+
+  getImagesFromSlots() {
+    const container = document.getElementById('product-images-container');
+    if (!container) return [];
+
+    const inputs = container.querySelectorAll('.slot-img-input');
+    const images = [];
+
+    inputs.forEach(input => {
+      const raw = input.value.trim();
+      if (raw) {
+        const clean = extractImageUrl(raw);
+        if (clean && !images.includes(clean)) images.push(clean);
+      }
+    });
+
+    return images;
+  }
   }
 
   closeModal() {

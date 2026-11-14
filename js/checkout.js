@@ -94,13 +94,14 @@ class CheckoutController {
     const alertEl = document.getElementById('pin-availability-alert');
     if (alertEl) {
       if (!pinCheck.serviceable) {
-        // Section 11: Display exact text "Currently Not Available in Your PIN Code."
         alertEl.style.display = 'block';
         alertEl.className = 'toast toast-danger';
-        alertEl.textContent = i18n.t('checkout.pinUnavailable') || 'Currently Not Available in Your PIN Code.';
+        alertEl.textContent = pinCheck.reason || 'Service unavailable: Orders cannot be placed for this PIN code location.';
         document.getElementById('place-order-btn').disabled = true;
       } else {
-        alertEl.style.display = 'none';
+        alertEl.style.display = 'block';
+        alertEl.className = 'toast toast-success';
+        alertEl.textContent = pinCheck.message || `Congratulations, orders can be placed for PIN code ${address.pinCode}!`;
         document.getElementById('place-order-btn').disabled = false;
       }
     }
@@ -172,9 +173,13 @@ class CheckoutController {
 
     if (!this.currentUser) throw new Error('Please sign in to place your order.');
     if (!this.selectedAddress) throw new Error('Please select or add a delivery address.');
-    if (!this.pinServiceability.serviceable) {
-      throw new Error(i18n.t('checkout.pinUnavailable') || 'Currently Not Available in Your PIN Code.');
+    
+    // Strict PIN check verification
+    const activePinCheck = await checkPinServiceability(this.selectedAddress.pinCode);
+    if (!activePinCheck.serviceable) {
+      throw new Error(activePinCheck.reason || 'Service unavailable: Orders cannot be placed for this PIN code location.');
     }
+    this.pinServiceability = activePinCheck;
 
     const items = cartManager.getItems();
     if (items.length === 0) throw new Error('Your cart is empty.');
