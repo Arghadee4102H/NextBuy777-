@@ -101,6 +101,7 @@ class ProfileController {
       const snap = await getDocs(addrRef);
       const addresses = [];
       snap.forEach(doc => addresses.push({ id: doc.id, ...doc.data() }));
+      this.savedAddresses = addresses;
 
       if (addresses.length === 0) {
         container.innerHTML = `
@@ -114,20 +115,21 @@ class ProfileController {
       let html = '';
       addresses.forEach(a => {
         html += `
-          <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; position: relative;">
+          <div class="saved-address-card" data-address-id="${a.id}" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s ease;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <strong>${escapeHtml(a.fullName)}</strong>
-              <div>
-                <button class="btn btn-sm btn-secondary delete-addr-btn" data-id="${a.id}">Delete</button>
+              <strong style="font-size: 15px;">${escapeHtml(a.fullName)}</strong>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm btn-secondary edit-addr-btn" data-id="${a.id}" title="Edit this address" style="padding: 4px 10px; font-size: 12px;">✏️ Edit</button>
+                <button class="btn btn-sm btn-secondary delete-addr-btn" data-id="${a.id}" title="Delete this address" style="color: var(--color-danger); border-color: #FEB2B2; padding: 4px 10px; font-size: 12px;">🗑️ Delete</button>
               </div>
             </div>
-            <p style="font-size: 14px; margin-bottom: 4px; color: var(--color-text-main);">
+            <p style="font-size: 14px; margin-bottom: 4px; color: var(--color-text-main); line-height: 1.4;">
               ${escapeHtml(a.houseBuilding)}, ${escapeHtml(a.streetLocality)}, ${escapeHtml(a.cityVillage)}
             </p>
             <p style="font-size: 14px; margin-bottom: 4px; color: var(--color-text-main);">
               ${escapeHtml(a.district)}, ${escapeHtml(a.state)} — <strong>${escapeHtml(a.pinCode)}</strong>
             </p>
-            <p style="font-size: 13px; color: var(--color-text-muted);">
+            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 0;">
               📞 Mobile: ${escapeHtml(a.mobile)}
             </p>
           </div>
@@ -136,10 +138,19 @@ class ProfileController {
 
       container.innerHTML = html;
 
+      // Bind Edit Address
+      container.querySelectorAll('.edit-addr-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          this.editAddress(id);
+        });
+      });
+
+      // Bind Delete Address
       container.querySelectorAll('.delete-addr-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const id = e.currentTarget.getAttribute('data-id');
-          if (confirm('Delete this address?')) {
+          if (confirm('Are you sure you want to delete this delivery address?')) {
             await this.deleteAddress(id);
           }
         });
@@ -149,7 +160,75 @@ class ProfileController {
     }
   }
 
-  async saveAddress(data) {
+  /**
+   * Populate form for editing an existing address
+   */
+  editAddress(id) {
+    if (!this.savedAddresses) return;
+    const a = this.savedAddresses.find(item => item.id === id);
+    if (!a) return;
+
+    const formTitle = document.getElementById('address-form-title');
+    const submitBtn = document.getElementById('save-address-btn');
+    const editIdInput = document.getElementById('editing-address-id');
+    const cancelBtn = document.getElementById('cancel-edit-address-btn');
+
+    if (formTitle) formTitle.textContent = '✏️ Edit Delivery Address';
+    if (submitBtn) {
+      submitBtn.textContent = 'Update Address';
+      submitBtn.className = 'btn btn-primary btn-block';
+    }
+    if (editIdInput) editIdInput.value = id;
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+
+    const fn = document.getElementById('addr-fullname');
+    const mob = document.getElementById('addr-mobile');
+    const house = document.getElementById('addr-house');
+    const street = document.getElementById('addr-street');
+    const city = document.getElementById('addr-city');
+    const pin = document.getElementById('addr-pincode');
+    const dist = document.getElementById('addr-district');
+    const state = document.getElementById('addr-state');
+
+    if (fn) fn.value = a.fullName || '';
+    if (mob) mob.value = a.mobile || '';
+    if (house) house.value = a.houseBuilding || '';
+    if (street) street.value = a.streetLocality || '';
+    if (city) city.value = a.cityVillage || '';
+    if (pin) pin.value = a.pinCode || '';
+    if (dist) dist.value = a.district || '';
+    if (state) state.value = a.state || '';
+
+    // Scroll form into view with smooth behavior
+    const formCard = document.getElementById('add-address-form');
+    if (formCard) {
+      formCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      formCard.classList.add('pulse-focus');
+      setTimeout(() => formCard.classList.remove('pulse-focus'), 1500);
+    }
+  }
+
+  /**
+   * Reset address form back to add mode
+   */
+  cancelAddressEdit() {
+    const formTitle = document.getElementById('address-form-title');
+    const submitBtn = document.getElementById('save-address-btn');
+    const editIdInput = document.getElementById('editing-address-id');
+    const cancelBtn = document.getElementById('cancel-edit-address-btn');
+    const form = document.getElementById('add-address-form');
+
+    if (formTitle) formTitle.textContent = 'Add New Delivery Address';
+    if (submitBtn) {
+      submitBtn.textContent = 'Save Address';
+      submitBtn.className = 'btn btn-secondary btn-block';
+    }
+    if (editIdInput) editIdInput.value = '';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (form) form.reset();
+  }
+
+  async saveAddress(data, editingId = null) {
     const user = this.currentUser || auth.currentUser;
     if (!user) {
       throw new Error('You must be signed in to save an address.');
@@ -160,24 +239,41 @@ class ProfileController {
     const cleanPin = data.pinCode ? data.pinCode.toString().trim() : '';
 
     if (!validatePinCode(cleanPin)) {
-      throw new Error('Please enter a valid 6-digit Indian PIN Code.');
+      throw new Error('Please enter a valid PIN Code.');
     }
     if (!validateIndianMobile(cleanMobile)) {
       throw new Error('Please enter a valid 10-digit Indian mobile number.');
     }
 
-    const addrRef = collection(db, 'users', user.uid, 'addresses');
     const docData = {
-      ...data,
-      pinCode: cleanPin,
+      fullName: data.fullName.trim(),
       mobile: cleanMobile,
-      createdAt: serverTimestamp()
+      houseBuilding: data.houseBuilding.trim(),
+      streetLocality: data.streetLocality.trim(),
+      cityVillage: data.cityVillage.trim(),
+      district: data.district.trim(),
+      state: data.state.trim(),
+      pinCode: cleanPin,
+      updatedAt: serverTimestamp()
     };
-    const newDoc = await addDoc(addrRef, docData);
 
-    showToast('Delivery address saved!', 'success');
+    if (editingId) {
+      // Modify/Update existing address
+      const docRef = doc(db, 'users', user.uid, 'addresses', editingId);
+      await updateDoc(docRef, docData);
+      showToast('Delivery address updated successfully!', 'success');
+      this.cancelAddressEdit();
+    } else {
+      // Create new address
+      docData.createdAt = serverTimestamp();
+      const addrRef = collection(db, 'users', user.uid, 'addresses');
+      await addDoc(addrRef, docData);
+      showToast('Delivery address saved!', 'success');
+      this.cancelAddressEdit();
+    }
+
     await this.loadAddresses();
-    return { id: newDoc.id, ...docData };
+    return true;
   }
 
   async deleteAddress(id) {

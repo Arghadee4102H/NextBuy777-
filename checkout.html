@@ -130,8 +130,9 @@
                   Submit Reference
                 </button>
               </div>
+              <div id="utr-error-msg" style="display: none; margin-top: 8px; font-size: 12px; color: var(--color-danger); background: #FFF5F5; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid #FED7D7; font-weight: 500; line-height: 1.4;"></div>
               <span style="font-size: 11px; color: var(--color-text-muted); display: block; margin-top: 4px;">
-                Stock will be reserved immediately upon valid UTR submission.
+                Stock will be reserved immediately upon valid UTR submission. Each payment reference must be unique.
               </span>
             </div>
           </div>
@@ -259,7 +260,14 @@
         const rawUtr = document.getElementById('utr-input').value;
         const { valid, normalized } = validateUtr(rawUtr);
 
+        const utrErrorEl = document.getElementById('utr-error-msg');
+        if (utrErrorEl) utrErrorEl.style.display = 'none';
+
         if (!valid) {
+          if (utrErrorEl) {
+            utrErrorEl.style.display = 'block';
+            utrErrorEl.textContent = 'Please enter a valid 6 to 35 digit UTR / UPI reference number.';
+          }
           showToast('Please enter a valid 6 to 35 digit UTR / UPI reference number.', 'danger');
           return;
         }
@@ -282,10 +290,19 @@
             window.location.href = `order-details.html?id=${currentOrderInfo.orderId}`;
           }, 1000);
         } catch (err) {
+          if (utrErrorEl) {
+            utrErrorEl.style.display = 'block';
+            utrErrorEl.textContent = err.message;
+          }
           showToast(err.message, 'danger');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Reference';
         }
+      });
+
+      document.getElementById('utr-input')?.addEventListener('input', () => {
+        const utrErrorEl = document.getElementById('utr-error-msg');
+        if (utrErrorEl) utrErrorEl.style.display = 'none';
       });
 
       // Add New Address inside Checkout

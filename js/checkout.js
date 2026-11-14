@@ -7,6 +7,10 @@ import {
   getDocs, 
   addDoc, 
   setDoc, 
+  updateDoc, 
+  query, 
+  where, 
+  limit, 
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { cartManager } from './cart.js';
@@ -190,6 +194,11 @@ class CheckoutController {
       const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
       const cleanUtr = utr ? utr.trim().toUpperCase() : null;
 
+      // Duplicate Reference Number Check (Requirement: No two reference numbers should be identical)
+      if (cleanUtr) {
+        await this.checkUtrAvailability(cleanUtr);
+      }
+
       const orderData = {
         orderNumber,
         customerUid: this.currentUser.uid,
@@ -260,12 +269,52 @@ class CheckoutController {
     }
   }
 
+  /**
+   * Check if a payment reference number (UTR) has already been used
+   * Displays an explicit error/warning if a duplicate reference is detected.
+   */
+  async checkUtrAvailability(cleanUtr, currentOrderId = null) {
+    if (!cleanUtr) return true;
+
+    // Check UTR Index
+    try {
+      const utrDoc = await getDoc(doc(db, 'utrIndex', cleanUtr));
+      if (utrDoc.exists()) {
+        const data = utrDoc.data();
+        if (!currentOrderId || data.orderId !== currentOrderId) {
+          throw new Error(`Duplicate Reference Number: Payment reference "${cleanUtr}" is already in use for another order. Please verify your payment receipt and enter a unique reference number.`);
+        }
+      }
+    } catch (e) {
+      if (e.message && e.message.includes('Duplicate Reference Number')) throw e;
+    }
+
+    // Double check orders collection directly
+    try {
+      const q = query(collection(db, 'orders'), where('utr', '==', cleanUtr), limit(2));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const match = snap.docs.find(d => !currentOrderId || d.id !== currentOrderId);
+        if (match) {
+          throw new Error(`Duplicate Reference Number: Payment reference "${cleanUtr}" is already in use for another order. Please verify your payment receipt and enter a unique reference number.`);
+        }
+      }
+    } catch (e) {
+      if (e.message && e.message.includes('Duplicate Reference Number')) throw e;
+    }
+
+    return true;
+  }
+
   async submitUtr(orderId, rawUtr) {
     if (!orderId) throw new Error('Order reference missing.');
     const cleanUtr = (rawUtr || '').trim().toUpperCase();
     if (!cleanUtr || cleanUtr.length < 6) {
       throw new Error('Please enter a valid 6-35 character UTR / Reference number.');
     }
+
+    // Verify uniqueness before writing
+    await this.checkUtrAvailability(cleanUtr, orderId);
 
     const orderRef = doc(db, 'orders', orderId);
     await updateDoc(orderRef, {

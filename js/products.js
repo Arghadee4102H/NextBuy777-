@@ -9,6 +9,17 @@ class ProductManager {
   constructor() {
     this.currentLanguage = i18n.currentLanguage || 'en';
     this.subscribed = false;
+    this.cache = {
+      banners: null,
+      categories: null,
+      products: null,
+      lastBannersTime: 0,
+      lastCategoriesTime: 0,
+      lastProductsTime: 0
+    };
+    this.bannerSliderInterval = null;
+    this.updateDebounceTimer = null;
+
     window.addEventListener('languageChanged', (e) => {
       this.currentLanguage = e.detail.language;
       this.refreshUI();
@@ -22,25 +33,32 @@ class ProductManager {
   }
 
   /**
-   * Fetch active banners from Firestore or return empty array
+   * Fetch active banners from Firestore with in-memory caching for smooth zero-stutter rendering
    */
-  async getActiveBanners() {
+  async getActiveBanners(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && this.cache.banners && (now - this.cache.lastBannersTime < 30000)) {
+      return this.cache.banners;
+    }
+
     try {
       const bannersRef = collection(db, 'banners');
       const q = query(bannersRef, where('active', '==', true), orderBy('order', 'asc'), limit(5));
       const snapshot = await getDocs(q);
       const banners = [];
-      const now = new Date();
+      const nowDate = new Date();
 
       snapshot.forEach(doc => {
         const data = doc.data();
         const start = data.startDate ? new Date(data.startDate) : null;
         const end = data.endDate ? new Date(data.endDate) : null;
-        // Schedule filter
-        if ((!start || start <= now) && (!end || end >= now)) {
+        if ((!start || start <= nowDate) && (!end || end >= nowDate)) {
           banners.push({ id: doc.id, ...data });
         }
       });
+
+      this.cache.banners = banners;
+      this.cache.lastBannersTime = now;
       return banners;
     } catch (err) {
       console.warn('Notice: Firestore banners collection is empty or rules pending. Using placeholder banner.', err);
@@ -49,15 +67,23 @@ class ProductManager {
   }
 
   /**
-   * Fetch active categories from Firestore
+   * Fetch active categories from Firestore with in-memory caching
    */
-  async getCategories() {
+  async getCategories(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && this.cache.categories && (now - this.cache.lastCategoriesTime < 60000)) {
+      return this.cache.categories;
+    }
+
     try {
       const catRef = collection(db, 'categories');
       const q = query(catRef, where('active', '==', true), orderBy('order', 'asc'));
       const snapshot = await getDocs(q);
       const categories = [];
       snapshot.forEach(doc => categories.push({ id: doc.id, ...doc.data() }));
+
+      this.cache.categories = categories;
+      this.cache.lastCategoriesTime = now;
       return categories;
     } catch (err) {
       console.warn('Notice: Categories collection empty. Using placeholder state.', err);
@@ -66,30 +92,39 @@ class ProductManager {
   }
 
   /**
-   * Fetch published products
+   * Fetch published products with intelligent in-memory cache to eliminate stutter
    * @param {Object} filterOptions
+   * @param {boolean} forceRefresh
    */
-  async getProducts(filterOptions = {}) {
-    try {
-      const prodRef = collection(db, 'products');
-      let q = query(prodRef, where('published', '==', true), limit(24));
+  async getProducts(filterOptions = {}, forceRefresh = false) {
+    const now = Date.now();
+    let allProducts = this.cache.products;
 
-      if (filterOptions.featured) {
-        q = query(prodRef, where('published', '==', true), where('featured', '==', true), limit(12));
-      } else if (filterOptions.newArrival) {
-        q = query(prodRef, where('published', '==', true), where('newArrival', '==', true), limit(12));
-      } else if (filterOptions.category) {
-        q = query(prodRef, where('published', '==', true), where('categoryId', '==', filterOptions.category), limit(24));
+    if (forceRefresh || !allProducts || (now - this.cache.lastProductsTime > 30000)) {
+      try {
+        const prodRef = collection(db, 'products');
+        const q = query(prodRef, where('published', '==', true), limit(50));
+        const snapshot = await getDocs(q);
+        allProducts = [];
+        snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
+
+        this.cache.products = allProducts;
+        this.cache.lastProductsTime = now;
+      } catch (err) {
+        console.warn('Notice: Products collection empty or awaiting upload. Rendering placeholders.', err);
+        return [];
       }
-
-      const snapshot = await getDocs(q);
-      const products = [];
-      snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
-      return products;
-    } catch (err) {
-      console.warn('Notice: Products collection empty or awaiting admin upload. Rendering placeholders.', err);
-      return [];
     }
+
+    if (filterOptions.featured) {
+      return allProducts.filter(p => Boolean(p.featured)).slice(0, 12);
+    } else if (filterOptions.newArrival) {
+      return allProducts.filter(p => Boolean(p.newArrival)).slice(0, 12);
+    } else if (filterOptions.category) {
+      return allProducts.filter(p => p.categoryId === filterOptions.category).slice(0, 24);
+    }
+
+    return allProducts.slice(0, 24);
   }
 
   /**
@@ -230,17 +265,24 @@ class ProductManager {
     container.addEventListener('mouseenter', stopAutoSlide);
     container.addEventListener('mouseleave', startAutoSlide);
 
+    let scrollTicking = false;
     track.addEventListener('scroll', () => {
-      const scrollPos = track.scrollLeft;
-      const slideWidth = track.clientWidth;
-      if (slideWidth > 0) {
-        const activeIdx = Math.round(scrollPos / slideWidth);
-        if (activeIdx !== currentIndex && activeIdx >= 0 && activeIdx < totalSlides) {
-          currentIndex = activeIdx;
-          dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === currentIndex);
-          });
-        }
+      if (!scrollTicking) {
+        requestAnimationFrame(() => {
+          const scrollPos = track.scrollLeft;
+          const slideWidth = track.clientWidth;
+          if (slideWidth > 0) {
+            const activeIdx = Math.round(scrollPos / slideWidth);
+            if (activeIdx !== currentIndex && activeIdx >= 0 && activeIdx < totalSlides) {
+              currentIndex = activeIdx;
+              dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentIndex);
+              });
+            }
+          }
+          scrollTicking = false;
+        });
+        scrollTicking = true;
       }
     }, { passive: true });
 
@@ -474,16 +516,32 @@ class ProductManager {
 
     if (!this.subscribed) {
       this.subscribed = true;
+      let initialBannersSkip = true;
+      let initialProductsSkip = true;
+
       try {
         const prodRef = collection(db, 'products');
         onSnapshot(query(prodRef, where('published', '==', true), limit(24)), () => {
-          this.getProducts({ featured: true }).then(f => this.renderCategoryTwoRowSlider('featured-grid', f, 'Featured Highlights', 'products.html?filter=featured'));
-          this.getProducts().then(a => this.renderCategoryTwoRowSlider('all-products-grid', a, 'New Arrivals & Catalog', 'products.html'));
+          if (initialProductsSkip) {
+            initialProductsSkip = false;
+            return;
+          }
+          clearTimeout(this.updateDebounceTimer);
+          this.updateDebounceTimer = setTimeout(async () => {
+            const f = await this.getProducts({ featured: true }, true);
+            this.renderCategoryTwoRowSlider('featured-grid', f, 'Featured Highlights', 'products.html?filter=featured');
+            const a = await this.getProducts({}, true);
+            this.renderCategoryTwoRowSlider('all-products-grid', a, 'New Arrivals & Catalog', 'products.html');
+          }, 400);
         }, (err) => console.warn('Product real-time listener notice:', err));
 
         const bannersRef = collection(db, 'banners');
         onSnapshot(query(bannersRef, where('active', '==', true), limit(5)), () => {
-          this.renderBannerSlider('banner-slider-container');
+          if (initialBannersSkip) {
+            initialBannersSkip = false;
+            return;
+          }
+          this.getActiveBanners(true).then(() => this.renderBannerSlider('banner-slider-container'));
         }, (err) => console.warn('Banner real-time listener notice:', err));
       } catch (e) {
         console.warn('Real-time listener setup:', e);

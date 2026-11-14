@@ -179,47 +179,51 @@
           </form>
         </div>
 
-        <!-- Add New Delivery Address Card -->
+        <!-- Add / Edit Delivery Address Card -->
         <div style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
-          <h2 style="font-size: var(--font-size-xl); margin-bottom: 16px;">Add New Delivery Address</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 id="address-form-title" style="font-size: var(--font-size-xl); margin: 0;">Add New Delivery Address</h2>
+          </div>
           <form id="add-address-form">
+            <input type="hidden" id="editing-address-id" value="">
             <div style="margin-bottom: 12px;">
-              <label for="addr-fullname" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Full Name</label>
+              <label for="addr-fullname" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Full Name *</label>
               <input type="text" id="addr-fullname" required class="search-input" style="border-radius: var(--radius-md);">
             </div>
             <div style="margin-bottom: 12px;">
-              <label for="addr-mobile" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Contact Mobile</label>
+              <label for="addr-mobile" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Contact Mobile *</label>
               <input type="tel" id="addr-mobile" required pattern="[6-9][0-9]{9}" placeholder="10-digit mobile" class="search-input" style="border-radius: var(--radius-md);">
             </div>
             <div style="margin-bottom: 12px;">
-              <label for="addr-house" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">House / Flat / Building</label>
+              <label for="addr-house" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">House / Flat / Building *</label>
               <input type="text" id="addr-house" required class="search-input" style="border-radius: var(--radius-md);">
             </div>
             <div style="margin-bottom: 12px;">
-              <label for="addr-street" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Street / Locality</label>
+              <label for="addr-street" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Street / Locality *</label>
               <input type="text" id="addr-street" required class="search-input" style="border-radius: var(--radius-md);">
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
               <div>
-                <label for="addr-city" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">City / Village</label>
+                <label for="addr-city" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">City / Village *</label>
                 <input type="text" id="addr-city" required class="search-input" style="border-radius: var(--radius-md);">
               </div>
               <div>
-                <label for="addr-pincode" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">PIN Code (6 Digits)</label>
-                <input type="text" id="addr-pincode" required pattern="[1-9][0-9]{5}" maxlength="6" placeholder="e.g. 700001" class="search-input" style="border-radius: var(--radius-md);">
+                <label for="addr-pincode" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">PIN Code *</label>
+                <input type="text" id="addr-pincode" required minlength="3" maxlength="10" placeholder="e.g. 7000 or 700001" class="search-input" style="border-radius: var(--radius-md);">
               </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
               <div>
-                <label for="addr-district" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">District</label>
+                <label for="addr-district" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">District *</label>
                 <input type="text" id="addr-district" required class="search-input" style="border-radius: var(--radius-md);">
               </div>
               <div>
-                <label for="addr-state" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">State</label>
+                <label for="addr-state" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">State *</label>
                 <input type="text" id="addr-state" required class="search-input" style="border-radius: var(--radius-md);">
               </div>
             </div>
-            <button type="submit" class="btn btn-secondary btn-block">Save Address</button>
+            <button type="submit" id="save-address-btn" class="btn btn-secondary btn-block">Save Address</button>
+            <button type="button" id="cancel-edit-address-btn" class="btn btn-secondary btn-block" style="display: none; margin-top: 8px;">Cancel Edit</button>
           </form>
         </div>
       </div>
@@ -328,9 +332,10 @@
         await profileController.updatePersonalDetails({ firstName, lastName, mobile, dateOfBirth: dob });
       });
 
-      // Add Address Form Submit
+      // Add / Edit Address Form Submit
       document.getElementById('add-address-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const editingId = document.getElementById('editing-address-id').value.trim() || null;
         const addressData = {
           fullName: document.getElementById('addr-fullname').value.trim(),
           mobile: document.getElementById('addr-mobile').value.trim(),
@@ -343,11 +348,15 @@
         };
 
         try {
-          await profileController.saveAddress(addressData);
-          document.getElementById('add-address-form').reset();
+          await profileController.saveAddress(addressData, editingId);
         } catch (err) {
           showToast(err.message, 'danger');
         }
+      });
+
+      // Cancel Address Edit
+      document.getElementById('cancel-edit-address-btn').addEventListener('click', () => {
+        profileController.cancelAddressEdit();
       });
     });
   </script>

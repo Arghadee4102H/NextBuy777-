@@ -116,9 +116,9 @@ service cloud.firestore {
 
     // UTR Unique Index
     match /utrIndex/{utr} {
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.customerUid == request.auth.uid);
+      allow read: if isAuthenticated() || isAdmin();
       allow create: if isAuthenticated() && !exists(/databases/$(database)/documents/utrIndex/$(utr));
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.customerUid == request.auth.uid);
     }
 
     // Inventory Movements Audit

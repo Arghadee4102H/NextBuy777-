@@ -1443,6 +1443,102 @@ html {
   }
 }
 
+/* =========================================================
+   Hardware-Accelerated Fluid Performance & Smooth Transitions
+   ========================================================= */
+
+/* GPU Hardware Acceleration for smooth scrolling and elimination of stutter */
+.banner-slider-track,
+.category-scroll-row,
+.category-pills-bar,
+.product-card,
+.nav-drawer {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Card Entrance Smooth Animation */
+@keyframes fadeInUpSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.product-card {
+  animation: fadeInUpSmooth 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  will-change: transform, box-shadow;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px -4px rgba(56, 25, 50, 0.12), 0 4px 10px -2px rgba(56, 25, 50, 0.05);
+}
+
+/* Fluid Touch Swiping & Smooth Scroll Snapping */
+.category-scroll-row {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+}
+
+.banner-slider-track {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth Tactile Feedback for Buttons */
+.btn {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  will-change: transform;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.965);
+}
+
+/* Pulse Glow Highlight for Edited Address */
+@keyframes pulseFocusGlow {
+  0% { box-shadow: 0 0 0 0 rgba(74, 33, 67, 0.45); }
+  70% { box-shadow: 0 0 0 12px rgba(74, 33, 67, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 33, 67, 0); }
+}
+
+.pulse-focus {
+  animation: pulseFocusGlow 1.4s ease-out;
+  border-color: var(--color-primary) !important;
+}
+
+/* Smooth Fade In for Page Content */
+@keyframes fadeInContent {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.site-main {
+  animation: fadeInContent 0.25s ease-out both;
+}
+
+/* Saved Address Card Hover & Action Animations */
+.saved-address-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.saved-address-card:hover {
+  border-color: var(--color-primary-light, #522649);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+
 
 
 
