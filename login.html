@@ -34,25 +34,45 @@
       ⚠️ <strong>In-App Browser Detected:</strong> Google Sign-In is often blocked inside Instagram, Facebook, or WhatsApp. Please tap <strong>&vellip;</strong> and select <strong>"Open in Chrome"</strong> or <strong>"Open in Safari"</strong>.
     </div>
 
-    <!-- Sign In Card -->
-    <div id="signin-card" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-md); text-align: center;">
-      <h1 style="font-size: var(--font-size-2xl); margin-bottom: 8px;">Customer Sign In</h1>
-      <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-6);">
-        Sign in with your Google account to access your saved addresses, track orders, and complete checkout.
+    <!-- Sign In / Sign Up Card -->
+    <div id="signin-card" style="background: var(--color-bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-md);">
+      <h1 style="font-size: var(--font-size-2xl); margin-bottom: 8px; text-align: center;">Sign Up / Sign In</h1>
+      <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-6); text-align: center;">
+        Sign up or sign in securely with your Google account to access your saved addresses, track orders, and complete checkout.
       </p>
 
-      <button id="google-signin-btn" class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; padding: 12px 16px; border-color: var(--color-border);">
+      <!-- Terms & Age Verification Consent Box -->
+      <div style="background: var(--color-bg-subtle, #FAF8F5); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+        <!-- Checkbox 1: Terms & Conditions and Privacy Policy -->
+        <label for="agree-terms-checkbox" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 13px; line-height: 1.5; color: var(--color-text-main); margin-bottom: 14px; user-select: none;">
+          <input type="checkbox" id="agree-terms-checkbox" style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: var(--color-primary); flex-shrink: 0;">
+          <span>
+            I agree to the <a href="terms.html" target="_blank" style="color: var(--color-primary); font-weight: 600; text-decoration: underline;">Terms and Conditions</a> and <a href="privacy.html" target="_blank" style="color: var(--color-primary); font-weight: 600; text-decoration: underline;">Privacy Policy</a>.
+          </span>
+        </label>
+
+        <!-- Checkbox 2: 18+ Age Confirmation -->
+        <label for="agree-age-checkbox" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 13px; line-height: 1.5; color: var(--color-text-main); margin-bottom: 0; user-select: none;">
+          <input type="checkbox" id="agree-age-checkbox" style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: var(--color-primary); flex-shrink: 0;">
+          <span>
+            I confirm that I am at least 18 years old to sign up and agree to all terms.
+          </span>
+        </label>
+      </div>
+
+      <!-- Sign Up Button (Faint/Dimmed until both checkboxes are checked) -->
+      <button id="google-signin-btn" class="btn btn-primary btn-block" disabled style="display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; font-weight: 600; padding: 14px 16px; border-radius: var(--radius-md); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0.35; filter: grayscale(70%); cursor: not-allowed; pointer-events: none;">
         <svg width="20" height="20" viewBox="0 0 48 48">
           <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
           <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
           <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
-        <span>Continue with Google</span>
+        <span id="signup-btn-text">Sign Up with Google</span>
       </button>
 
-      <p style="font-size: 12px; color: var(--color-text-light); margin-top: var(--space-6);">
-        By signing in, you agree to our <a href="terms.html">Terms & Conditions</a> and <a href="privacy.html">Privacy Policy</a>.
+      <p id="consent-hint-msg" style="font-size: 12px; color: var(--color-danger, #e53e3e); margin-top: 12px; text-align: center; font-weight: 500;">
+        ⚠️ Please check both boxes above to enable Sign Up.
       </p>
     </div>
 
@@ -96,7 +116,8 @@
 
     function getSafeRedirectUrl() {
       const params = new URLSearchParams(window.location.search);
-      let redirect = params.get('redirect') || sessionStorage.getItem('nextbuy_redirect') || 'index.html';
+      let redirect = params.get('redirect') || sessionStorage.getItem('nextpay_redirect') || sessionStorage.getItem('nextbuy_redirect') || 'index.html';
+      sessionStorage.removeItem('nextpay_redirect');
       sessionStorage.removeItem('nextbuy_redirect');
 
       // Strip leading slashes to stay within relative GitHub Pages / domain root
@@ -122,7 +143,7 @@
       // Remember redirect parameter in case of OAuth redirect
       const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
       if (urlRedirect) {
-        sessionStorage.setItem('nextbuy_redirect', urlRedirect);
+        sessionStorage.setItem('nextpay_redirect', urlRedirect);
       }
 
       if (detectInAppBrowser()) {
@@ -152,10 +173,49 @@
         }
       });
 
-      document.getElementById('google-signin-btn').addEventListener('click', async () => {
+      // Terms & 18+ Age Verification Checkboxes Controller
+      const termsCheckbox = document.getElementById('agree-terms-checkbox');
+      const ageCheckbox = document.getElementById('agree-age-checkbox');
+      const googleBtn = document.getElementById('google-signin-btn');
+      const consentHint = document.getElementById('consent-hint-msg');
+
+      const updateSignUpBtnState = () => {
+        const canSignUp = Boolean(termsCheckbox && termsCheckbox.checked && ageCheckbox && ageCheckbox.checked);
+        if (googleBtn) {
+          googleBtn.disabled = !canSignUp;
+          if (canSignUp) {
+            googleBtn.style.opacity = '1';
+            googleBtn.style.filter = 'none';
+            googleBtn.style.cursor = 'pointer';
+            googleBtn.style.pointerEvents = 'auto';
+            googleBtn.style.boxShadow = '0 6px 20px rgba(45, 20, 44, 0.28)';
+            googleBtn.style.transform = 'translateY(-1px)';
+            if (consentHint) consentHint.style.display = 'none';
+          } else {
+            googleBtn.style.opacity = '0.35';
+            googleBtn.style.filter = 'grayscale(70%)';
+            googleBtn.style.cursor = 'not-allowed';
+            googleBtn.style.pointerEvents = 'none';
+            googleBtn.style.boxShadow = 'none';
+            googleBtn.style.transform = 'none';
+            if (consentHint) consentHint.style.display = 'block';
+          }
+        }
+      };
+
+      if (termsCheckbox) termsCheckbox.addEventListener('change', updateSignUpBtnState);
+      if (ageCheckbox) ageCheckbox.addEventListener('change', updateSignUpBtnState);
+      updateSignUpBtnState();
+
+      document.getElementById('google-signin-btn').addEventListener('click', async (e) => {
+        if (!termsCheckbox.checked || !ageCheckbox.checked) {
+          e.preventDefault();
+          showToast('Please check both boxes to agree to the Terms, Privacy Policy, and 18+ age requirement.', 'warning');
+          return;
+        }
         const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
         if (urlRedirect) {
-          sessionStorage.setItem('nextbuy_redirect', urlRedirect);
+          sessionStorage.setItem('nextpay_redirect', urlRedirect);
         }
         await signInWithGoogle();
       });

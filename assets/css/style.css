@@ -1346,10 +1346,17 @@ html {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(2px);
-  z-index: 1000;
-  transition: opacity 0.3s ease;
+  z-index: 9998;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.drawer-backdrop.active {
+  display: block;
+  opacity: 1;
 }
 
 .nav-drawer {
@@ -1359,18 +1366,25 @@ html {
   bottom: 0;
   width: 320px;
   max-width: 85vw;
+  height: 100vh;
   background: var(--color-bg-surface, #ffffff);
-  z-index: 1001;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.18);
+  z-index: 9999;
+  box-shadow: -6px 0 28px rgba(0, 0, 0, 0.22);
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(100%) !important;
+  -webkit-transform: translateX(100%) !important;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease;
   overflow-y: auto;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .nav-drawer.open {
-  transform: translateX(0);
+  transform: translateX(0) !important;
+  -webkit-transform: translateX(0) !important;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .drawer-header {
@@ -1391,16 +1405,22 @@ html {
 .drawer-close-btn {
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 32px;
   line-height: 1;
-  color: var(--color-text-muted);
+  color: var(--color-text-main);
   cursor: pointer;
-  padding: 0 4px;
-  transition: color 0.2s ease;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: color 0.2s ease, background-color 0.2s ease;
+  user-select: none;
 }
 
 .drawer-close-btn:hover {
   color: var(--color-danger, #e53e3e);
+  background-color: var(--color-bg-body);
 }
 
 .drawer-user-strip {
@@ -1540,8 +1560,7 @@ html {
 .banner-slider-track,
 .category-scroll-row,
 .category-pills-bar,
-.product-card,
-.nav-drawer {
+.product-card {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   backface-visibility: hidden;

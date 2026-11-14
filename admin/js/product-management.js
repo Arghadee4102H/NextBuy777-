@@ -1,4 +1,4 @@
-﻿// Product Management Controller - NextPay 7
+// Product Management Controller - NextPay 7
 import { db, storage, auth } from '../../js/firebase-config.js';
 import { 
   collection, 

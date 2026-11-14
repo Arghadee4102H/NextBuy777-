@@ -11,34 +11,84 @@ export function initNavigation() {
   const closeBtn = document.getElementById('close-drawer-btn');
 
   const openDrawer = () => {
-    if (drawer && backdrop) {
+    if (drawer) {
       drawer.classList.add('open');
-      backdrop.style.display = 'block';
-      document.body.style.overflow = 'hidden'; // prevent page background scroll while drawer open
     }
+    if (backdrop) {
+      backdrop.style.display = 'block';
+      // Trigger smooth opacity transition
+      requestAnimationFrame(() => {
+        backdrop.classList.add('active');
+      });
+    }
+    document.body.style.overflow = 'hidden';
   };
 
   const closeDrawer = () => {
-    if (drawer && backdrop) {
+    if (drawer) {
       drawer.classList.remove('open');
-      backdrop.style.display = 'none';
-      document.body.style.overflow = '';
     }
+    if (backdrop) {
+      backdrop.classList.remove('active');
+      setTimeout(() => {
+        if (!drawer || !drawer.classList.contains('open')) {
+          backdrop.style.display = 'none';
+        }
+      }, 250);
+    }
+    document.body.style.overflow = '';
   };
 
   if (toggleBtn) {
     toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       openDrawer();
     });
   }
 
-  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
-  if (backdrop) backdrop.addEventListener('click', closeDrawer);
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeDrawer();
+    });
+  }
 
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDrawer();
+  if (backdrop) {
+    backdrop.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeDrawer();
+    });
+  }
+
+  // Click anywhere outside the drawer closes it
+  document.addEventListener('click', (e) => {
+    if (drawer && drawer.classList.contains('open')) {
+      const clickedInsideDrawer = drawer.contains(e.target);
+      const clickedToggle = toggleBtn && toggleBtn.contains(e.target);
+      if (!clickedInsideDrawer && !clickedToggle) {
+        closeDrawer();
+      }
+    }
   });
+
+  // Close when pressing Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) {
+      closeDrawer();
+    }
+  });
+
+  // Close drawer when any navigation link inside is clicked
+  if (drawer) {
+    drawer.querySelectorAll('.drawer-link').forEach(link => {
+      link.addEventListener('click', () => {
+        closeDrawer();
+      });
+    });
+  }
 
   // Cart Badge sync
   cartManager.updateCartBadge();
