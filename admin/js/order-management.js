@@ -263,6 +263,82 @@ class OrderPaymentManager {
   }
 
   /**
+   * Cancel Payment / Order and Release Stock (Admin Action)
+   * @param {string} orderId 
+   * @param {string} cancelReason 
+   */
+  async cancelPayment(orderId, cancelReason = 'Cancelled by administrator') {
+    const currentAdminUid = auth.currentUser?.uid || 'admin';
+    const orderRef = doc(db, 'orders', orderId);
+
+    await runTransaction(db, async (transaction) => {
+      const orderDoc = await transaction.get(orderRef);
+      if (!orderDoc.exists()) throw new Error('Order not found');
+
+      const o = orderDoc.data();
+
+      // Release reserved or finalized stock
+      const items = o.itemsSnapshot || [];
+      for (const item of items) {
+        if (!item.id || item.id === 'sample_placeholder') continue;
+        const invRef = doc(db, 'inventory', item.id);
+        const invDoc = await transaction.get(invRef);
+
+        if (invDoc.exists()) {
+          const inv = invDoc.data();
+          const qty = item.quantity || 1;
+          
+          let newOnHand = inv.onHand || 0;
+          let newReserved = inv.reserved || 0;
+          if (o.paymentStatus === 'Payment Verified') {
+            newOnHand += qty;
+          } else {
+            newReserved = Math.max(0, newReserved - qty);
+          }
+
+          transaction.update(invRef, {
+            onHand: newOnHand,
+            reserved: newReserved,
+            available: newOnHand - newReserved,
+            updatedAt: serverTimestamp()
+          });
+
+          // Log movement
+          const movRef = doc(db, 'inventoryMovements', `MOV_CAN_${Date.now()}_${item.id}`);
+          transaction.set(movRef, {
+            productId: item.id,
+            orderId,
+            change: qty,
+            type: 'ORDER_CANCELLED',
+            reason: `Payment/Order Cancelled: ${cancelReason}`,
+            actorUid: currentAdminUid,
+            createdAt: serverTimestamp()
+          });
+        }
+      }
+
+      // Append status history
+      const history = o.statusHistory || [];
+      history.push({
+        status: 'Payment Cancelled',
+        cancelledBy: currentAdminUid,
+        reason: cancelReason,
+        timestamp: new Date().toISOString()
+      });
+
+      transaction.update(orderRef, {
+        paymentStatus: 'Payment Cancelled',
+        orderStatus: 'Cancelled',
+        cancelReason: cancelReason,
+        statusHistory: history,
+        updatedAt: serverTimestamp()
+      });
+    });
+
+    showToast(`Order & payment successfully cancelled.`, 'info');
+  }
+
+  /**
    * Update Order Progress Status (Section 15 transition table)
    * Valid transitions:
    * Order Confirmed -> Processing -> Shipped -> Out for Delivery -> Delivered

@@ -15,7 +15,7 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { formatCurrency, showToast, escapeHtml } from '../../js/utils.js';
+import { formatCurrency, showToast, escapeHtml, extractImageUrl } from '../../js/utils.js';
 
 class ProductManager {
   constructor() {
@@ -91,7 +91,8 @@ class ProductManager {
     this.products.forEach(p => {
       const title = p.name?.en || 'Untitled Product';
       const price = formatCurrency(p.pricePaise || 0);
-      const img = (p.images && p.images[0]) || '../assets/images/logo.jpeg';
+      const rawImg = (p.images && p.images[0]) || '../assets/images/logo.jpeg';
+      const img = extractImageUrl(rawImg) || '../assets/images/logo.jpeg';
       const stock = p.availableStock !== undefined ? p.availableStock : (p.stock || 0);
       const seller = p.sellerName || 'NextBuy 77 Official';
 
@@ -179,6 +180,9 @@ class ProductManager {
     const currentSellerId = auth.currentUser?.uid || 'SELLER_NEXTBUY_OFFICIAL';
     const currentSellerName = formData.sellerName?.trim() || 'NextBuy 77 Official Seller';
 
+    const rawImgInput = (formData.images && formData.images[0]) || '';
+    const cleanImageUrl = extractImageUrl(rawImgInput) || 'assets/images/logo.jpeg';
+
     const payload = {
       name: {
         en: formData.nameEn?.trim() || '',
@@ -197,7 +201,7 @@ class ProductManager {
       originalPricePaise,
       discountPercent,
       availableStock: stockQty,
-      images: formData.images || [],
+      images: [cleanImageUrl],
       published: Boolean(formData.published),
       featured: Boolean(formData.featured),
       newArrival: Boolean(formData.newArrival),
@@ -288,7 +292,16 @@ class ProductManager {
         document.getElementById('prod-published').checked = Boolean(p.published);
         document.getElementById('prod-featured').checked = Boolean(p.featured);
         document.getElementById('prod-new').checked = Boolean(p.newArrival);
-        document.getElementById('prod-image-url').value = (p.images && p.images[0]) || '';
+        const currentImg = (p.images && p.images[0]) || '';
+        document.getElementById('prod-image-url').value = currentImg;
+        const previewWrap = document.getElementById('prod-img-preview-wrap');
+        const previewImg = document.getElementById('prod-img-preview');
+        if (currentImg && previewWrap && previewImg) {
+          previewImg.src = extractImageUrl(currentImg);
+          previewWrap.style.display = 'flex';
+        } else if (previewWrap) {
+          previewWrap.style.display = 'none';
+        }
         
         // Seller rules
         if (document.getElementById('prod-seller-name')) {

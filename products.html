@@ -77,9 +77,9 @@
       </div>
     </div>
 
-    <!-- Product Grid -->
-    <div id="catalog-products-grid" class="product-grid">
-      <!-- Rendered dynamically by products.js; empty Firestore renders placeholders with "Add to Cart" -->
+    <!-- Product Grid / Showcase -->
+    <div id="catalog-products-grid">
+      <!-- Rendered dynamically by products.js in two independent rows -->
     </div>
   </main>
 
@@ -164,7 +164,7 @@
         });
       }
 
-      productManager.renderProductGrid('catalog-products-grid', displayed, 12);
+      productManager.renderCategoryTwoRowSlider('catalog-products-grid', displayed, 'Store Collection');
 
       onAuthStateChanged(auth, (user) => {
         const userBtn = document.getElementById('user-nav-btn');

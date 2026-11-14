@@ -169,7 +169,7 @@
     import { db, auth } from './js/firebase-config.js';
     import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { formatCurrency, showToast } from './js/utils.js';
+    import { formatCurrency, showToast, extractImageUrl } from './js/utils.js';
 
     let currentProduct = null;
 
@@ -247,7 +247,7 @@
 
       if (prod.images && prod.images.length > 0) {
         const mainImg = document.getElementById('main-product-img');
-        mainImg.src = prod.images[0];
+        mainImg.src = extractImageUrl(prod.images[0]);
         mainImg.style.display = 'block';
         document.getElementById('placeholder-gallery').style.display = 'none';
       }

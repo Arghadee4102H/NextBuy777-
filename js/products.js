@@ -1,7 +1,7 @@
 // Products & Dynamic Content Manager - NextBuy 77
 import { db } from './firebase-config.js';
 import { collection, query, where, getDocs, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { formatCurrency, escapeHtml, showToast } from './utils.js';
+import { formatCurrency, escapeHtml, showToast, extractImageUrl } from './utils.js';
 import { i18n } from './i18n.js';
 import { cartManager } from './cart.js';
 
@@ -93,17 +93,22 @@ class ProductManager {
   }
 
   /**
-   * Render Top Banner Section
-   * Shows active banners if available; otherwise displays the clean "Banner" placeholder
+   * Render Top Banner Section with Both Automatic and Manual Sliding
+   * Automatically slides on interval and allows manual swipe, arrows, and dot navigation.
+   * Extracts clean image URL from ImgBB HTML embed code or direct links with zero clutter.
    */
   async renderBannerSlider(containerId = 'banner-slider-container') {
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    if (this.bannerSliderInterval) {
+      clearInterval(this.bannerSliderInterval);
+      this.bannerSliderInterval = null;
+    }
+
     const banners = await this.getActiveBanners();
 
     if (banners.length === 0) {
-      // User specification: "Placeholders like 'Banner' will appear where the actual banners should be."
       container.innerHTML = `
         <div class="banner-placeholder">
           <div class="banner-placeholder-icon">🏷️</div>
@@ -114,26 +119,271 @@ class ProductManager {
       return;
     }
 
-    // Render active banner slider
-    let html = `<div class="banner-slider" style="display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none;">`;
+    let slidesHtml = '';
+    let dotsHtml = '';
+
     banners.forEach((b, idx) => {
       const alt = this.getLocalizedText(b.altText) || 'Promotional Banner';
-      html += `
-        <div class="banner-slide" style="min-width:100%; flex-shrink:0; scroll-snap-align:start;">
+      const cleanImg = extractImageUrl(b.imageUrl) || 'assets/images/logo.jpeg';
+
+      slidesHtml += `
+        <div class="banner-slide" data-index="${idx}">
           <a href="${b.linkUrl || '#'}" style="display:block;">
-            <img src="${escapeHtml(b.imageUrl)}" alt="${escapeHtml(alt)}" class="banner-image" style="width:100%; max-height:420px; object-fit:cover; display:block;">
+            <img src="${escapeHtml(cleanImg)}" alt="${escapeHtml(alt)}" class="banner-image" loading="${idx === 0 ? 'eager' : 'lazy'}">
           </a>
         </div>
       `;
+
+      dotsHtml += `
+        <button class="banner-dot ${idx === 0 ? 'active' : ''}" data-slide="${idx}" aria-label="Slide ${idx + 1}"></button>
+      `;
     });
-    html += `</div>`;
-    container.innerHTML = html;
+
+    container.innerHTML = `
+      <div class="banner-slider-wrapper">
+        <div class="banner-slider-track" id="banner-track">
+          ${slidesHtml}
+        </div>
+        ${banners.length > 1 ? `
+          <button class="banner-nav-btn banner-prev-btn" id="banner-prev" aria-label="Previous Banner">&lsaquo;</button>
+          <button class="banner-nav-btn banner-next-btn" id="banner-next" aria-label="Next Banner">&rsaquo;</button>
+          <div class="banner-dots-wrap" id="banner-dots">
+            ${dotsHtml}
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    if (banners.length <= 1) return;
+
+    const track = document.getElementById('banner-track');
+    const dots = container.querySelectorAll('.banner-dot');
+    let currentIndex = 0;
+    const totalSlides = banners.length;
+
+    const goToSlide = (idx) => {
+      currentIndex = (idx + totalSlides) % totalSlides;
+      const slideEl = track.children[currentIndex];
+      if (slideEl) {
+        track.scrollTo({
+          left: slideEl.offsetLeft,
+          behavior: 'smooth'
+        });
+      }
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentIndex);
+      });
+    };
+
+    const nextSlide = () => goToSlide(currentIndex + 1);
+    const prevSlide = () => goToSlide(currentIndex - 1);
+
+    const startAutoSlide = () => {
+      stopAutoSlide();
+      this.bannerSliderInterval = setInterval(nextSlide, 4500);
+    };
+
+    const stopAutoSlide = () => {
+      if (this.bannerSliderInterval) {
+        clearInterval(this.bannerSliderInterval);
+        this.bannerSliderInterval = null;
+      }
+    };
+
+    document.getElementById('banner-prev')?.addEventListener('click', () => {
+      prevSlide();
+      startAutoSlide();
+    });
+
+    document.getElementById('banner-next')?.addEventListener('click', () => {
+      nextSlide();
+      startAutoSlide();
+    });
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        const slideIdx = parseInt(e.currentTarget.getAttribute('data-slide'), 10);
+        goToSlide(slideIdx);
+        startAutoSlide();
+      });
+    });
+
+    // Touch Swipe on mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    track.addEventListener('touchstart', (e) => {
+      stopAutoSlide();
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    track.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchStartX - touchEndX > 40) {
+        nextSlide();
+      } else if (touchEndX - touchStartX > 40) {
+        prevSlide();
+      }
+      startAutoSlide();
+    }, { passive: true });
+
+    container.addEventListener('mouseenter', stopAutoSlide);
+    container.addEventListener('mouseleave', startAutoSlide);
+
+    track.addEventListener('scroll', () => {
+      const scrollPos = track.scrollLeft;
+      const slideWidth = track.clientWidth;
+      if (slideWidth > 0) {
+        const activeIdx = Math.round(scrollPos / slideWidth);
+        if (activeIdx !== currentIndex && activeIdx >= 0 && activeIdx < totalSlides) {
+          currentIndex = activeIdx;
+          dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentIndex);
+          });
+        }
+      }
+    }, { passive: true });
+
+    startAutoSlide();
   }
 
   /**
-   * Render Product Grid
-   * If products array is empty, renders user-requested Placeholders:
-   * "Only an 'Add to Cart' option will be visible. Placeholders like 'Product' will appear where the actual products should be."
+   * Render Category Products in Two Independent Horizontal Sliding Rows (Mobile Optimized)
+   * Top row contains Math.ceil(N / 2) items, Bottom row contains Math.floor(N / 2) items.
+   * On mobile, 2 products are displayed side-by-side with a portion of the 3rd visible.
+   * Interacting with row 1 slides ONLY row 1; row 2 remains completely independent.
+   */
+  renderCategoryTwoRowSlider(containerId, products = [], categoryTitle = '', categoryLink = '') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!products || products.length === 0) {
+      // 7 placeholder products (4 top row, 3 bottom row) as specified by user
+      const totalPlaceholders = 7;
+      const topCount = Math.ceil(totalPlaceholders / 2); // 4
+      const bottomCount = Math.floor(totalPlaceholders / 2); // 3
+
+      const createPlaceholderCard = () => `
+        <div class="product-card product-card-placeholder">
+          <div class="product-image-wrap">
+            <div class="product-placeholder-img">
+              <span class="product-placeholder-icon">🛍️</span>
+              <span style="font-weight:600; font-size:13px;" data-i18n="home.productPlaceholderTitle">${i18n.t('home.productPlaceholderTitle')}</span>
+            </div>
+          </div>
+          <div class="product-card-body">
+            <span style="font-size:11px; color:var(--color-text-light); text-transform:uppercase;" data-i18n="home.productPlaceholderCategory">${i18n.t('home.productPlaceholderCategory')}</span>
+            <h3 class="product-title" data-i18n="home.productPlaceholderTitle">${i18n.t('home.productPlaceholderTitle')}</h3>
+            <div class="product-price-row">
+              <span class="product-price">₹0.00</span>
+            </div>
+            <button class="btn btn-primary btn-block add-to-cart-placeholder-btn" data-i18n="home.addToCart">
+              ${i18n.t('home.addToCart')}
+            </button>
+          </div>
+        </div>
+      `;
+
+      let topRowHtml = '';
+      for (let i = 0; i < topCount; i++) topRowHtml += createPlaceholderCard();
+
+      let bottomRowHtml = '';
+      for (let i = 0; i < bottomCount; i++) bottomRowHtml += createPlaceholderCard();
+
+      container.innerHTML = `
+        <div class="category-showcase-wrap">
+          ${categoryTitle ? `
+            <div class="section-title-wrap" style="margin-bottom: 12px;">
+              <h2 class="section-title">${escapeHtml(categoryTitle)}</h2>
+              ${categoryLink ? `<a href="${categoryLink}" style="font-size: 13px; font-weight: 600;">View All &rarr;</a>` : ''}
+            </div>
+          ` : ''}
+          <div class="category-two-tier-container">
+            <div class="category-scroll-row row-top" tabindex="0">
+              ${topRowHtml}
+            </div>
+            <div class="category-scroll-row row-bottom" tabindex="0">
+              ${bottomRowHtml}
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.querySelectorAll('.add-to-cart-placeholder-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          cartManager.addItem({ id: 'sample_placeholder', name: { en: 'Product' }, pricePaise: 0 }, 1);
+        });
+      });
+      return;
+    }
+
+    // Split items into two independent rows
+    const topCount = Math.ceil(products.length / 2);
+    const topRowItems = products.slice(0, topCount);
+    const bottomRowItems = products.slice(topCount);
+
+    const renderCard = (p) => {
+      const name = this.getLocalizedText(p.name);
+      const priceFormatted = formatCurrency(p.pricePaise || (p.price ? p.price * 100 : 0));
+      const origPriceFormatted = p.originalPricePaise ? formatCurrency(p.originalPricePaise) : '';
+      const rawImg = (p.images && p.images[0]) || '';
+      const img = extractImageUrl(rawImg) || 'assets/images/logo.jpeg';
+
+      return `
+        <div class="product-card" data-product-id="${p.id}">
+          <a href="product-details.html?id=${p.id}" class="product-image-wrap">
+            <img src="${escapeHtml(img)}" alt="${escapeHtml(name)}" class="product-image" loading="lazy">
+          </a>
+          <div class="product-card-body">
+            <h3 class="product-title"><a href="product-details.html?id=${p.id}">${escapeHtml(name)}</a></h3>
+            <div class="product-price-row">
+              <span class="product-price">${priceFormatted}</span>
+              ${origPriceFormatted ? `<span class="product-original-price">${origPriceFormatted}</span>` : ''}
+              ${p.discountPercent ? `<span class="product-discount-badge">${p.discountPercent}% OFF</span>` : ''}
+            </div>
+            <button class="btn btn-primary btn-block add-to-cart-btn" data-id="${p.id}" data-i18n="home.addToCart">
+              ${i18n.t('home.addToCart')}
+            </button>
+          </div>
+        </div>
+      `;
+    };
+
+    let topRowHtml = topRowItems.map(p => renderCard(p)).join('');
+    let bottomRowHtml = bottomRowItems.map(p => renderCard(p)).join('');
+
+    container.innerHTML = `
+      <div class="category-showcase-wrap">
+        ${categoryTitle ? `
+          <div class="section-title-wrap" style="margin-bottom: 12px;">
+            <h2 class="section-title">${escapeHtml(categoryTitle)}</h2>
+            ${categoryLink ? `<a href="${categoryLink}" style="font-size: 13px; font-weight: 600;">View All &rarr;</a>` : ''}
+          </div>
+        ` : ''}
+        <div class="category-two-tier-container">
+          <div class="category-scroll-row row-top" tabindex="0">
+            ${topRowHtml}
+          </div>
+          ${bottomRowHtml ? `
+            <div class="category-scroll-row row-bottom" tabindex="0">
+              ${bottomRowHtml}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+
+    container.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        const prod = products.find(item => item.id === id);
+        if (prod) cartManager.addItem(prod, 1);
+      });
+    });
+  }
+
+  /**
+   * Render Standard Product Grid
    */
   renderProductGrid(containerId, products = [], count = 8) {
     const container = document.getElementById(containerId);
@@ -180,7 +430,8 @@ class ProductManager {
       const name = this.getLocalizedText(p.name);
       const priceFormatted = formatCurrency(p.pricePaise || (p.price ? p.price * 100 : 0));
       const origPriceFormatted = p.originalPricePaise ? formatCurrency(p.originalPricePaise) : '';
-      const img = (p.images && p.images[0]) || 'assets/images/logo.jpeg';
+      const rawImg = (p.images && p.images[0]) || '';
+      const img = extractImageUrl(rawImg) || 'assets/images/logo.jpeg';
 
       html += `
         <div class="product-card" data-product-id="${p.id}">
@@ -216,18 +467,18 @@ class ProductManager {
   async refreshUI() {
     await this.renderBannerSlider('banner-slider-container');
     const featured = await this.getProducts({ featured: true });
-    this.renderProductGrid('featured-grid', featured, 4);
+    this.renderCategoryTwoRowSlider('featured-grid', featured, 'Featured Highlights', 'products.html?filter=featured');
 
     const all = await this.getProducts();
-    this.renderProductGrid('all-products-grid', all, 8);
+    this.renderCategoryTwoRowSlider('all-products-grid', all, 'New Arrivals & Catalog', 'products.html');
 
     if (!this.subscribed) {
       this.subscribed = true;
       try {
         const prodRef = collection(db, 'products');
         onSnapshot(query(prodRef, where('published', '==', true), limit(24)), () => {
-          this.getProducts({ featured: true }).then(f => this.renderProductGrid('featured-grid', f, 4));
-          this.getProducts().then(a => this.renderProductGrid('all-products-grid', a, 8));
+          this.getProducts({ featured: true }).then(f => this.renderCategoryTwoRowSlider('featured-grid', f, 'Featured Highlights', 'products.html?filter=featured'));
+          this.getProducts().then(a => this.renderCategoryTwoRowSlider('all-products-grid', a, 'New Arrivals & Catalog', 'products.html'));
         }, (err) => console.warn('Product real-time listener notice:', err));
 
         const bannersRef = collection(db, 'banners');

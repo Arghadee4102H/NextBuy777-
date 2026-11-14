@@ -151,7 +151,7 @@
     import { i18n } from './js/i18n.js';
     import { securityDeterrents } from './js/security-deterrents.js';
     import { cartManager } from './js/cart.js';
-    import { formatCurrency, escapeHtml, showToast } from './js/utils.js';
+    import { formatCurrency, escapeHtml, showToast, extractImageUrl } from './js/utils.js';
     import { calculateOrderTotals } from './js/pricing-engine.js';
     import { auth } from './js/firebase-config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -209,7 +209,7 @@
 
         html += `
           <div class="cart-item-card">
-            <img src="${escapeHtml(item.image || 'assets/images/logo.jpeg')}" alt="${escapeHtml(title)}" class="cart-item-img" style="width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
+            <img src="${escapeHtml(extractImageUrl(item.image) || 'assets/images/logo.jpeg')}" alt="${escapeHtml(title)}" class="cart-item-img" style="width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
             <div class="cart-item-body" style="flex: 1; min-width: 160px;">
               <h3 style="font-size: 15px; margin-bottom: 4px;">${escapeHtml(title)}</h3>
               <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 0;">${formatCurrency(item.pricePaise)} each</p>

@@ -26,6 +26,7 @@
       <li><a href="orders.html">📦 Orders</a></li>
       <li><a href="payments.html" class="active">💳 Payments</a></li>
       <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="staff.html">🛡️ Admin Users & Roles</a></li>
       <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
       <li><a href="pin-codes.html">📍 PIN Codes</a></li>
       <li><a href="settings.html">⚙️ Settings</a></li>
@@ -39,8 +40,8 @@
   <div class="admin-main">
     <header class="admin-topbar">
       <div>
-        <h2 style="font-size: 20px; margin-bottom: 0;">Manual UPI Verification Queue</h2>
-        <span style="font-size: 12px; color: var(--color-text-muted);">Verify customer UTR reference numbers against bank deposits</span>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Payment Verification & Actions</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Review Order IDs, Reference Numbers (UTR), and Approve, Cancel, or Reject transactions</span>
       </div>
       <div style="display: flex; align-items: center; gap: 16px;">
         <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
@@ -50,30 +51,38 @@
 
     <main class="admin-content">
       <div class="admin-card">
-        <div class="card-header-row">
+        <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
           <div>
-            <h3 style="font-size: 18px; margin-bottom: 2px;">Payments Awaiting Review</h3>
-            <span style="font-size: 13px; color: var(--color-text-muted);">Stock is reserved. Verify or reject to finalize inventory.</span>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Transactions Queue</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Manage UPI/Manual payments: Approve, Cancel, or Reject directly.</span>
           </div>
-          <button id="refresh-payments-btn" class="btn btn-secondary btn-sm">🔄 Refresh Queue</button>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="payment-filter-select" class="search-input" style="padding: 6px 12px; border-radius: var(--radius-md); font-size: 13px;">
+              <option value="PENDING">Pending Verification / Submitted</option>
+              <option value="ALL">All Payment Transactions</option>
+              <option value="VERIFIED">Approved / Verified Only</option>
+              <option value="REJECTED_CANCELLED">Rejected / Cancelled Only</option>
+            </select>
+            <button id="refresh-payments-btn" class="btn btn-secondary btn-sm">🔄 Refresh Queue</button>
+          </div>
         </div>
 
         <div style="overflow-x: auto;">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Order Number</th>
+                <th>Order ID</th>
+                <th>Payment Reference (UTR / RRN)</th>
                 <th>Customer</th>
-                <th>Payable Amount</th>
-                <th>Submitted UTR / RRN</th>
-                <th>Reservation Expiry</th>
-                <th>Action</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th style="min-width: 220px; text-align: center;">Actions</th>
               </tr>
             </thead>
             <tbody id="payments-tbody">
               <tr>
                 <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
-                  Loading pending payments...
+                  Loading transactions...
                 </td>
               </tr>
             </tbody>
@@ -83,51 +92,70 @@
     </main>
   </div>
 
-  <!-- Verification Modal -->
-  <div id="verify-modal" class="modal-overlay">
-    <div class="modal-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
-        <h2 style="font-size: 20px; margin: 0;">Verify / Reject Payment</h2>
+  <!-- Action Modal -->
+  <div id="verify-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 620px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+        <h2 style="font-size: 20px; margin: 0;">Payment Transaction Details</h2>
         <button id="close-verify-modal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
       </div>
 
       <div style="background: var(--color-bg-body); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
-          <span>Order Number:</span> <strong id="verify-order-num">-</strong>
+          <span>Order ID:</span> <strong id="verify-order-num">-</strong>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
-          <span>Expected Payable:</span> <strong id="verify-expected-amount" style="color: var(--color-primary);">-</strong>
+          <span>Customer:</span> <strong id="verify-customer-info">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+          <span>Payable Amount:</span> <strong id="verify-expected-amount" style="color: var(--color-primary); font-size: 16px;">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+          <span>Payment Reference (UTR):</span> <strong id="verify-utr-code" class="upi-id-badge" style="color: var(--color-accent); font-family: monospace; font-size: 15px;">-</strong>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 14px;">
-          <span>Submitted UTR:</span> <strong id="verify-utr-code" class="upi-id-badge" style="color: var(--color-accent); font-family: monospace;">-</strong>
+          <span>Current Payment Status:</span> <strong id="verify-current-status">-</strong>
         </div>
       </div>
 
-      <!-- Action Tabs / Forms -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <!-- Verify Action Box -->
-        <div style="border: 2px solid var(--color-success); border-radius: var(--radius-md); padding: 16px; background: #F7FAF8;">
-          <h3 style="font-size: 16px; color: var(--color-success); margin-bottom: 12px;">Approve Payment</h3>
-          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">Finalizes stock sale and marks order confirmed.</p>
-          <div style="margin-bottom: 12px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Actual Amount Received (₹)</label>
-            <input type="number" id="verify-received-amount" step="0.01" class="search-input" style="border-radius: var(--radius-md);">
+      <!-- Action Boxes Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+        <!-- Approve Box -->
+        <div style="border: 1px solid var(--color-success); border-radius: var(--radius-md); padding: 14px; background: #F7FAF8; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <h4 style="font-size: 15px; color: var(--color-success); margin-bottom: 6px;">✓ Approve</h4>
+            <p style="font-size: 11px; color: var(--color-text-muted); margin-bottom: 10px;">Verifies payment, finalizes stock and confirms order.</p>
+            <label style="display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">Amount Received (₹)</label>
+            <input type="number" id="verify-received-amount" step="0.01" class="search-input" style="border-radius: var(--radius-md); width: 100%; margin-bottom: 10px; padding: 6px 8px; font-size: 13px;">
           </div>
-          <button id="btn-approve-payment" class="btn btn-primary btn-block" style="background: var(--color-success); border-color: var(--color-success);">
-            ✓ Verify & Confirm Order
+          <button id="btn-approve-payment" class="btn btn-primary btn-block" style="background: var(--color-success); border-color: var(--color-success); font-size: 13px; padding: 8px;">
+            Approve Payment
           </button>
         </div>
 
-        <!-- Reject Action Box -->
-        <div style="border: 2px solid var(--color-danger); border-radius: var(--radius-md); padding: 16px; background: #FAF7F7;">
-          <h3 style="font-size: 16px; color: var(--color-danger); margin-bottom: 12px;">Reject Payment</h3>
-          <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">Releases reserved stock back to available catalog.</p>
-          <div style="margin-bottom: 12px;">
-            <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Mandatory Reason</label>
-            <textarea id="reject-reason" rows="2" class="search-input" style="border-radius: var(--radius-md); resize: vertical;" placeholder="e.g. UTR not found in bank statement"></textarea>
+        <!-- Reject Box -->
+        <div style="border: 1px solid var(--color-danger); border-radius: var(--radius-md); padding: 14px; background: #FAF7F7; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <h4 style="font-size: 15px; color: var(--color-danger); margin-bottom: 6px;">✕ Reject</h4>
+            <p style="font-size: 11px; color: var(--color-text-muted); margin-bottom: 10px;">Releases reserved stock back to inventory.</p>
+            <label style="display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">Rejection Reason</label>
+            <input type="text" id="reject-reason" class="search-input" style="border-radius: var(--radius-md); width: 100%; margin-bottom: 10px; padding: 6px 8px; font-size: 13px;" placeholder="e.g. Invalid UTR / Not received">
           </div>
-          <button id="btn-reject-payment" class="btn btn-secondary btn-block" style="color: var(--color-danger); border-color: var(--color-danger);">
-            ✕ Reject & Release Stock
+          <button id="btn-reject-payment" class="btn btn-secondary btn-block" style="color: var(--color-danger); border-color: var(--color-danger); font-size: 13px; padding: 8px;">
+            Reject Payment
+          </button>
+        </div>
+
+        <!-- Cancel Box -->
+        <div style="border: 1px solid #718096; border-radius: var(--radius-md); padding: 14px; background: #F7FAFC; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <h4 style="font-size: 15px; color: #4A5568; margin-bottom: 6px;">🚫 Cancel</h4>
+            <p style="font-size: 11px; color: var(--color-text-muted); margin-bottom: 10px;">Cancels transaction and voids the order.</p>
+            <label style="display: block; font-size: 11px; font-weight: 600; margin-bottom: 2px;">Cancellation Note</label>
+            <input type="text" id="cancel-reason" class="search-input" style="border-radius: var(--radius-md); width: 100%; margin-bottom: 10px; padding: 6px 8px; font-size: 13px;" placeholder="e.g. Customer requested cancellation">
+          </div>
+          <button id="btn-cancel-payment" class="btn btn-secondary btn-block" style="color: #4A5568; border-color: #CBD5E0; font-size: 13px; padding: 8px;">
+            Cancel Transaction
           </button>
         </div>
       </div>
@@ -138,9 +166,10 @@
     import { adminAuth } from './js/admin-auth.js';
     import { orderPaymentManager } from './js/order-management.js';
     import { db } from '../js/firebase-config.js';
-    import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { formatCurrency, formatDateIST, showToast, copyToClipboard, escapeHtml } from '../js/utils.js';
 
+    let allOrders = [];
     let selectedOrderId = null;
     let selectedOrderData = null;
 
@@ -150,6 +179,7 @@
 
       document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
       document.getElementById('refresh-payments-btn').addEventListener('click', () => loadPaymentQueue());
+      document.getElementById('payment-filter-select').addEventListener('change', () => renderTable());
 
       document.getElementById('close-verify-modal').addEventListener('click', () => {
         document.getElementById('verify-modal').style.display = 'none';
@@ -173,14 +203,26 @@
       // Reject Payment
       document.getElementById('btn-reject-payment').addEventListener('click', async () => {
         if (!selectedOrderId) return;
-        const reason = document.getElementById('reject-reason').value.trim();
-        if (!reason) {
-          showToast('Please enter a rejection reason.', 'warning');
-          return;
-        }
+        const reason = document.getElementById('reject-reason').value.trim() || 'Payment verification rejected by admin';
 
         try {
           await orderPaymentManager.rejectPayment(selectedOrderId, reason);
+          document.getElementById('verify-modal').style.display = 'none';
+          await loadPaymentQueue();
+        } catch (err) {
+          showToast(err.message, 'danger');
+        }
+      });
+
+      // Cancel Payment
+      document.getElementById('btn-cancel-payment').addEventListener('click', async () => {
+        if (!selectedOrderId) return;
+        const reason = document.getElementById('cancel-reason').value.trim() || 'Transaction cancelled by admin';
+
+        if (!confirm('Are you sure you want to cancel this transaction and release stock?')) return;
+
+        try {
+          await orderPaymentManager.cancelPayment(selectedOrderId, reason);
           document.getElementById('verify-modal').style.display = 'none';
           await loadPaymentQueue();
         } catch (err) {
@@ -191,83 +233,207 @@
 
     async function loadPaymentQueue() {
       const tbody = document.getElementById('payments-tbody');
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">Loading transactions...</td></tr>`;
+
       try {
         const q = query(
           collection(db, 'orders'),
-          where('paymentStatus', 'in', ['Payment Submitted', 'Payment Under Verification']),
-          orderBy('createdAt', 'asc')
+          orderBy('createdAt', 'desc'),
+          limit(100)
         );
         const snap = await getDocs(q);
 
-        if (snap.empty) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 36px;">
-                🎉 All caught up! No pending payments awaiting verification.
-              </td>
-            </tr>
-          `;
-          return;
-        }
-
-        let html = '';
+        allOrders = [];
         snap.forEach(d => {
-          const o = d.data();
-          const amount = formatCurrency(o.finalPayablePaise || 0);
-
-          html += `
-            <tr>
-              <td><strong>${escapeHtml(o.orderNumber || d.id)}</strong></td>
-              <td>${escapeHtml(o.customerName || o.customerEmail || 'Customer')}</td>
-              <td><strong>${amount}</strong></td>
-              <td>
-                <span class="upi-id-badge" style="font-family: monospace; font-size: 14px; font-weight: 700; color: var(--color-primary);">${escapeHtml(o.utr || 'N/A')}</span>
-                <button class="btn btn-sm btn-secondary copy-utr-btn" data-utr="${escapeHtml(o.utr || '')}" style="margin-left: 6px; padding: 2px 6px;">Copy</button>
-              </td>
-              <td style="font-size: 12px; color: var(--color-text-muted);">
-                ${o.reservationExpiresAt ? formatDateIST(o.reservationExpiresAt) : '24 Hours'}
-              </td>
-              <td>
-                <button class="btn btn-sm btn-primary open-verify-btn" data-id="${d.id}">Review & Action</button>
-              </td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
-
-        tbody.querySelectorAll('.copy-utr-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const utr = e.currentTarget.getAttribute('data-utr');
-            if (utr) {
-              await copyToClipboard(utr);
-              showToast('UTR copied to clipboard!', 'success');
-            }
-          });
+          allOrders.push({ id: d.id, ...d.data() });
         });
 
-        tbody.querySelectorAll('.open-verify-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.getAttribute('data-id');
-            const docData = snap.docs.find(d => d.id === id)?.data();
-            if (docData) {
-              selectedOrderId = id;
-              selectedOrderData = docData;
-
-              document.getElementById('verify-order-num').textContent = docData.orderNumber || id;
-              document.getElementById('verify-expected-amount').textContent = formatCurrency(docData.finalPayablePaise || 0);
-              document.getElementById('verify-utr-code').textContent = docData.utr || 'N/A';
-              document.getElementById('verify-received-amount').value = ((docData.finalPayablePaise || 0) / 100).toFixed(2);
-              document.getElementById('reject-reason').value = '';
-
-              document.getElementById('verify-modal').style.display = 'flex';
-            }
-          });
-        });
+        renderTable();
       } catch (err) {
         console.error('Error loading payments queue', err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-danger); padding: 32px;">Failed to load payments: ${escapeHtml(err.message)}</td></tr>`;
       }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('payments-tbody');
+      const filter = document.getElementById('payment-filter-select').value;
+
+      let filtered = allOrders;
+      if (filter === 'PENDING') {
+        filtered = allOrders.filter(o => 
+          !o.paymentStatus || 
+          o.paymentStatus === 'Payment verification pending' || 
+          o.paymentStatus === 'Payment Submitted' || 
+          o.paymentStatus === 'Payment Under Verification' || 
+          o.paymentStatus === 'Pending Payment'
+        );
+      } else if (filter === 'VERIFIED') {
+        filtered = allOrders.filter(o => o.paymentStatus === 'Payment Verified');
+      } else if (filter === 'REJECTED_CANCELLED') {
+        filtered = allOrders.filter(o => o.paymentStatus === 'Payment Rejected' || o.paymentStatus === 'Payment Cancelled' || o.orderStatus === 'Cancelled');
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 36px;">
+              No payment transactions matching filter: <strong>${escapeHtml(filter)}</strong>.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(o => {
+        const amount = formatCurrency(o.finalPayablePaise || 0);
+        const orderIdDisplay = o.orderNumber || o.id;
+        const utrDisplay = o.utr || 'Not submitted';
+
+        let badgeClass = 'badge-warning';
+        if (o.paymentStatus === 'Payment Verified') badgeClass = 'badge-success';
+        else if (o.paymentStatus === 'Payment Rejected' || o.paymentStatus === 'Payment Cancelled') badgeClass = 'badge-danger';
+
+        html += `
+          <tr data-id="${o.id}">
+            <td>
+              <strong>${escapeHtml(orderIdDisplay)}</strong>
+              <div style="font-size: 11px; color: var(--color-text-muted); font-family: monospace;">ID: ${escapeHtml(o.id)}</div>
+            </td>
+            <td>
+              <span class="upi-id-badge" style="font-family: monospace; font-size: 13px; font-weight: 700; color: var(--color-primary); background: #FAF6F0; padding: 3px 8px; border-radius: 4px; border: 1px solid #EADBCC;">
+                ${escapeHtml(utrDisplay)}
+              </span>
+              ${o.utr ? `<button class="btn btn-sm btn-secondary copy-utr-btn" data-utr="${escapeHtml(o.utr)}" style="margin-left: 6px; padding: 2px 6px; font-size: 11px;">Copy</button>` : ''}
+            </td>
+            <td>
+              <div style="font-weight: 600;">${escapeHtml(o.customerName || 'Customer')}</div>
+              <div style="font-size: 11px; color: var(--color-text-muted);">${escapeHtml(o.customerEmail || o.customerMobile || '')}</div>
+            </td>
+            <td><strong>${amount}</strong></td>
+            <td>
+              <span class="status-badge ${badgeClass}" style="font-size: 11px;">
+                ${escapeHtml(o.paymentStatus || 'Pending')}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-sm btn-primary action-approve-inline-btn" data-id="${o.id}" title="Approve Payment" style="background: var(--color-success); border-color: var(--color-success); padding: 4px 8px; font-size: 12px;">
+                  ✓ Approve
+                </button>
+                <button class="btn btn-sm btn-secondary action-reject-inline-btn" data-id="${o.id}" title="Reject Payment" style="color: var(--color-danger); border-color: var(--color-danger); padding: 4px 8px; font-size: 12px;">
+                  ✕ Reject
+                </button>
+                <button class="btn btn-sm btn-secondary action-cancel-inline-btn" data-id="${o.id}" title="Cancel Transaction" style="color: #4A5568; border-color: #CBD5E0; padding: 4px 8px; font-size: 12px;">
+                  🚫 Cancel
+                </button>
+                <button class="btn btn-sm btn-secondary action-modal-open-btn" data-id="${o.id}" title="Open Full Details" style="padding: 4px 8px; font-size: 12px;">
+                  🔍 Details
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+
+      // Bind Copy UTR
+      tbody.querySelectorAll('.copy-utr-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const utr = e.currentTarget.getAttribute('data-utr');
+          if (utr) {
+            await copyToClipboard(utr);
+            showToast('Payment Reference (UTR) copied!', 'success');
+          }
+        });
+      });
+
+      // Quick Action: Approve
+      tbody.querySelectorAll('.action-approve-inline-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const ord = allOrders.find(item => item.id === id);
+          if (!ord) return;
+
+          if (ord.paymentStatus === 'Payment Verified') {
+            showToast('This transaction is already approved & verified.', 'info');
+            return;
+          }
+
+          if (confirm(`Approve payment for Order ${ord.orderNumber || id} (Amount: ${formatCurrency(ord.finalPayablePaise || 0)})?`)) {
+            try {
+              await orderPaymentManager.verifyPayment(id, ord.finalPayablePaise || 0);
+              await loadPaymentQueue();
+            } catch (err) {
+              showToast(err.message, 'danger');
+            }
+          }
+        });
+      });
+
+      // Quick Action: Reject
+      tbody.querySelectorAll('.action-reject-inline-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const ord = allOrders.find(item => item.id === id);
+          if (!ord) return;
+
+          const reason = prompt(`Enter rejection reason for Order ${ord.orderNumber || id}:`, 'Payment reference invalid or not received');
+          if (reason !== null && reason.trim()) {
+            try {
+              await orderPaymentManager.rejectPayment(id, reason.trim());
+              await loadPaymentQueue();
+            } catch (err) {
+              showToast(err.message, 'danger');
+            }
+          }
+        });
+      });
+
+      // Quick Action: Cancel
+      tbody.querySelectorAll('.action-cancel-inline-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const ord = allOrders.find(item => item.id === id);
+          if (!ord) return;
+
+          const reason = prompt(`Enter cancellation reason for Order ${ord.orderNumber || id}:`, 'Transaction cancelled by admin');
+          if (reason !== null && reason.trim()) {
+            try {
+              await orderPaymentManager.cancelPayment(id, reason.trim());
+              await loadPaymentQueue();
+            } catch (err) {
+              showToast(err.message, 'danger');
+            }
+          }
+        });
+      });
+
+      // Details Modal Open
+      tbody.querySelectorAll('.action-modal-open-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const ord = allOrders.find(item => item.id === id);
+          if (ord) {
+            selectedOrderId = id;
+            selectedOrderData = ord;
+
+            document.getElementById('verify-order-num').textContent = ord.orderNumber || id;
+            document.getElementById('verify-customer-info').textContent = `${ord.customerName || 'Customer'} (${ord.customerEmail || ord.customerMobile || 'N/A'})`;
+            document.getElementById('verify-expected-amount').textContent = formatCurrency(ord.finalPayablePaise || 0);
+            document.getElementById('verify-utr-code').textContent = ord.utr || 'Not submitted';
+            document.getElementById('verify-current-status').textContent = ord.paymentStatus || 'Pending';
+            document.getElementById('verify-received-amount').value = ((ord.finalPayablePaise || 0) / 100).toFixed(2);
+            document.getElementById('reject-reason').value = '';
+            document.getElementById('cancel-reason').value = '';
+
+            document.getElementById('verify-modal').style.display = 'flex';
+          }
+        });
+      });
     }
   </script>
 </body>
 </html>
-

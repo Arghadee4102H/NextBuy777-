@@ -26,6 +26,7 @@
       <li><a href="orders.html">📦 Orders</a></li>
       <li><a href="payments.html">💳 Payments</a></li>
       <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="staff.html">🛡️ Admin Users & Roles</a></li>
       <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
       <li><a href="pin-codes.html">📍 PIN Codes</a></li>
       <li><a href="settings.html">⚙️ Settings</a></li>
@@ -142,10 +143,16 @@
           </div>
         </div>
 
-        <!-- Primary Image URL -->
+        <!-- Primary Image URL / Embed Code -->
         <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Image URL (HTTPS or /assets/images/...)</label>
-          <input type="url" id="prod-image-url" class="search-input" style="border-radius: var(--radius-md);" placeholder="https://... or upload">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+            Product Image (HTML Embed Code or Direct URL)
+          </label>
+          <textarea id="prod-image-url" rows="2" class="search-input" style="border-radius: var(--radius-md); resize: vertical; font-family: monospace; font-size: 12px;" placeholder="Paste HTML embed code (e.g. from ImgBB: <a ...><img src='...' /></a>) or direct URL"></textarea>
+          <div id="prod-img-preview-wrap" style="margin-top: 8px; display: none; align-items: center; gap: 10px;">
+            <img id="prod-img-preview" src="" alt="Preview" style="height: 60px; width: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-border);">
+            <span style="font-size: 12px; color: var(--color-success); font-weight: 600;">✓ Image code recognized</span>
+          </div>
         </div>
 
         <!-- Seller Reference Rules -->
@@ -197,10 +204,27 @@
   <script type="module">
     import { adminAuth } from './js/admin-auth.js';
     import { productManager } from './js/product-management.js';
+    import { extractImageUrl } from '../js/utils.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       adminAuth.protectPage();
       await productManager.init();
+
+      // Live Image Code / Embed Parser & Preview
+      const imgInput = document.getElementById('prod-image-url');
+      const previewWrap = document.getElementById('prod-img-preview-wrap');
+      const previewImg = document.getElementById('prod-img-preview');
+      if (imgInput && previewWrap && previewImg) {
+        imgInput.addEventListener('input', () => {
+          const extracted = extractImageUrl(imgInput.value);
+          if (extracted) {
+            previewImg.src = extracted;
+            previewWrap.style.display = 'flex';
+          } else {
+            previewWrap.style.display = 'none';
+          }
+        });
+      }
 
       document.getElementById('admin-signout-btn').addEventListener('click', async () => {
         await adminAuth.logout();

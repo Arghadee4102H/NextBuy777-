@@ -144,3 +144,43 @@ export async function copyToClipboard(text) {
   }
 }
 
+/**
+ * Universal image URL extractor:
+ * Parses full HTML embed codes (e.g. ImgBB <a ...><img src="..." .../></a> or <img src="...">),
+ * BBCode, Markdown, or direct image URLs.
+ * Extracts ONLY the clean raw image src URL so no extra clutter or links render.
+ * @param {string} input
+ * @returns {string}
+ */
+export function extractImageUrl(input) {
+  if (!input || typeof input !== 'string') return '';
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  // 1. Check for <img ... src="..." ...> HTML embed code
+  const imgMatch = trimmed.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch && imgMatch[1]) {
+    return imgMatch[1].trim();
+  }
+
+  // 2. Check for BBCode [img]...[/img]
+  const bbMatch = trimmed.match(/\[img\](.*?)\[\/img\]/i);
+  if (bbMatch && bbMatch[1]) {
+    return bbMatch[1].trim();
+  }
+
+  // 3. Check for markdown ![...](url)
+  const mdMatch = trimmed.match(/!\[.*?\]\((https?:\/\/[^\s\)]+)\)/i);
+  if (mdMatch && mdMatch[1]) {
+    return mdMatch[1].trim();
+  }
+
+  // 4. Check for direct URL (http/https) in the input string
+  const urlMatch = trimmed.match(/(https?:\/\/[^\s"'<>]+)/i);
+  if (urlMatch && urlMatch[1]) {
+    return urlMatch[1].trim();
+  }
+
+  return trimmed;
+}
+

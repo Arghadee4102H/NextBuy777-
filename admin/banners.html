@@ -26,6 +26,7 @@
       <li><a href="orders.html">📦 Orders</a></li>
       <li><a href="payments.html">💳 Payments</a></li>
       <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="staff.html">🛡️ Admin Users & Roles</a></li>
       <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
       <li><a href="pin-codes.html">📍 PIN Codes</a></li>
       <li><a href="settings.html">⚙️ Settings</a></li>
@@ -93,8 +94,14 @@
 
       <form id="banner-form">
         <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Banner Image URL (HTTPS) *</label>
-          <input type="url" id="banner-img-url" required class="search-input" style="border-radius: var(--radius-md);" placeholder="https://...">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+            Banner Image (HTML Embed Code or Direct URL) *
+          </label>
+          <textarea id="banner-img-url" required rows="2" class="search-input" style="border-radius: var(--radius-md); resize: vertical; font-family: monospace; font-size: 12px;" placeholder="Paste HTML embed code (e.g. from ImgBB: <a ...><img src='...' /></a>) or direct URL"></textarea>
+          <div id="banner-preview-wrap" style="margin-top: 8px; display: none; align-items: center; gap: 10px;">
+            <img id="banner-preview-img" src="" alt="Banner Preview" style="height: 60px; max-width: 140px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
+            <span style="font-size: 12px; color: var(--color-success); font-weight: 600;">✓ Banner code recognized</span>
+          </div>
         </div>
         <div style="margin-bottom: 14px;">
           <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Destination Link URL</label>
@@ -136,18 +143,37 @@
   <script type="module">
     import { adminAuth } from './js/admin-auth.js';
     import { db } from '../js/firebase-config.js';
-    import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { showToast, formatDateIST, escapeHtml } from '../js/utils.js';
+    import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { showToast, formatDateIST, escapeHtml, extractImageUrl } from '../js/utils.js';
+
+    let unsubscribeBanners = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
       adminAuth.protectPage();
-      await loadBanners();
+      listenToBanners();
+
+      // Live banner code parser & preview
+      const bannerInput = document.getElementById('banner-img-url');
+      const previewWrap = document.getElementById('banner-preview-wrap');
+      const previewImg = document.getElementById('banner-preview-img');
+      if (bannerInput && previewWrap && previewImg) {
+        bannerInput.addEventListener('input', () => {
+          const url = extractImageUrl(bannerInput.value);
+          if (url) {
+            previewImg.src = url;
+            previewWrap.style.display = 'flex';
+          } else {
+            previewWrap.style.display = 'none';
+          }
+        });
+      }
 
       document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
 
       document.getElementById('add-banner-btn').addEventListener('click', () => {
         document.getElementById('banner-form').reset();
         document.getElementById('banner-active').checked = true;
+        if (previewWrap) previewWrap.style.display = 'none';
         document.getElementById('banner-modal').style.display = 'flex';
       });
 
@@ -160,8 +186,16 @@
 
       document.getElementById('banner-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const rawImgInput = document.getElementById('banner-img-url').value.trim();
+        const cleanImageUrl = extractImageUrl(rawImgInput);
+
+        if (!cleanImageUrl) {
+          showToast('Please provide a valid image embed code or URL.', 'warning');
+          return;
+        }
+
         const payload = {
-          imageUrl: document.getElementById('banner-img-url').value.trim(),
+          imageUrl: cleanImageUrl,
           linkUrl: document.getElementById('banner-link-url').value.trim() || '/products.html',
           startDate: document.getElementById('banner-start-date').value || null,
           endDate: document.getElementById('banner-end-date').value || null,
@@ -175,65 +209,72 @@
           await addDoc(collection(db, 'banners'), payload);
           showToast('Promotional banner saved!', 'success');
           document.getElementById('banner-modal').style.display = 'none';
-          await loadBanners();
         } catch (err) {
           showToast(err.message, 'danger');
         }
       });
     });
 
-    async function loadBanners() {
+    function listenToBanners() {
       const tbody = document.getElementById('banners-tbody');
+      if (!tbody) return;
+
+      if (unsubscribeBanners) unsubscribeBanners();
+
       try {
-        const snap = await getDocs(query(collection(db, 'banners'), orderBy('order', 'asc')));
-        if (snap.empty) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
-                No promotional banners uploaded yet. Click "+ Add New Banner" to create your first top slider banner.
-              </td>
-            </tr>
-          `;
-          return;
-        }
+        const q = query(collection(db, 'banners'), orderBy('order', 'asc'));
+        unsubscribeBanners = onSnapshot(q, (snap) => {
+          if (snap.empty) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  No promotional banners uploaded yet. Click "+ Add New Banner" to create your first top slider banner.
+                </td>
+              </tr>
+            `;
+            return;
+          }
 
-        let html = '';
-        snap.forEach(d => {
-          const b = d.data();
-          const start = b.startDate ? formatDateIST(b.startDate) : 'Immediate';
-          const end = b.endDate ? formatDateIST(b.endDate) : 'Permanent';
+          let html = '';
+          snap.forEach(d => {
+            const b = d.data();
+            const start = b.startDate ? formatDateIST(b.startDate) : 'Immediate';
+            const end = b.endDate ? formatDateIST(b.endDate) : 'Permanent';
+            const cleanImg = extractImageUrl(b.imageUrl) || '../assets/images/logo.jpeg';
 
-          html += `
-            <tr>
-              <td>
-                <img src="${escapeHtml(b.imageUrl)}" alt="Banner" style="width: 100px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
-              </td>
-              <td><strong>${b.order || 1}</strong></td>
-              <td><a href="${escapeHtml(b.linkUrl || '#')}" target="_blank" style="font-size: 13px;">${escapeHtml(b.linkUrl || '/products.html')}</a></td>
-              <td style="font-size: 12px; color: var(--color-text-muted);">${start} to ${end}</td>
-              <td>
-                <span class="status-badge ${b.active ? 'badge-success' : 'badge-danger'}">${b.active ? 'Active' : 'Inactive'}</span>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-secondary delete-banner-btn" data-id="${d.id}" style="color: var(--color-danger);">&times; Delete</button>
-              </td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
-
-        tbody.querySelectorAll('.delete-banner-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const id = e.currentTarget.getAttribute('data-id');
-            if (confirm('Delete this banner?')) {
-              await deleteDoc(doc(db, 'banners', id));
-              showToast('Banner deleted.', 'info');
-              await loadBanners();
-            }
+            html += `
+              <tr>
+                <td>
+                  <img src="${escapeHtml(cleanImg)}" alt="Banner" style="width: 100px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--color-border);">
+                </td>
+                <td><strong>${b.order || 1}</strong></td>
+                <td><a href="${escapeHtml(b.linkUrl || '#')}" target="_blank" style="font-size: 13px;">${escapeHtml(b.linkUrl || '/products.html')}</a></td>
+                <td style="font-size: 12px; color: var(--color-text-muted);">${start} to ${end}</td>
+                <td>
+                  <span class="status-badge ${b.active ? 'badge-success' : 'badge-danger'}">${b.active ? 'Active' : 'Inactive'}</span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-secondary delete-banner-btn" data-id="${d.id}" style="color: var(--color-danger);">&times; Delete</button>
+                </td>
+              </tr>
+            `;
           });
+          tbody.innerHTML = html;
+
+          tbody.querySelectorAll('.delete-banner-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const id = e.currentTarget.getAttribute('data-id');
+              if (confirm('Delete this banner?')) {
+                await deleteDoc(doc(db, 'banners', id));
+                showToast('Banner deleted.', 'info');
+              }
+            });
+          });
+        }, (err) => {
+          console.error('Banners real-time snapshot error:', err);
         });
       } catch (err) {
-        console.error('Error loading banners', err);
+        console.error('Error listening to banners', err);
       }
     }
   </script>

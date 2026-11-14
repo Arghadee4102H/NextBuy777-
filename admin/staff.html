@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Users & Roles — NextBuy 77 Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.jpeg" alt="NextBuy 77">
+      <div>
+        <strong style="font-size: 16px; color: #fff;">NextBuy 77</strong>
+        <span style="display: block; font-size: 11px; opacity: 0.7;">Admin Workspace</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="dashboard.html">📊 Dashboard</a></li>
+      <li><a href="products.html">🛍️ Products</a></li>
+      <li><a href="categories.html">🗂️ Categories</a></li>
+      <li><a href="banners.html">🏷️ Banners</a></li>
+      <li><a href="orders.html">📦 Orders</a></li>
+      <li><a href="payments.html">💳 Payments</a></li>
+      <li><a href="users.html">👥 Customers</a></li>
+      <li><a href="staff.html" class="active">🛡️ Admin Users & Roles</a></li>
+      <li><a href="promo-codes.html">🎟️ Promo Codes</a></li>
+      <li><a href="pin-codes.html">📍 PIN Codes</a></li>
+      <li><a href="settings.html">⚙️ Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="../" target="_blank" style="color: rgba(255,243,230,0.8); text-decoration: none; font-size: 13px;">🌐 View Live Store &rarr;</a>
+    </div>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <h2 style="font-size: 20px; margin-bottom: 0;">Admin Users & Role Assignment</h2>
+        <span style="font-size: 12px; color: var(--color-text-muted);">Manage administrator accounts and assign specific security roles via Firebase</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span id="admin-display-name" style="font-size: 14px; font-weight: 600;">Admin</span>
+        <button id="admin-signout-btn" class="btn btn-secondary btn-sm">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <!-- Admin Users Card -->
+      <div class="admin-card">
+        <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Administrator Accounts</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Authorized administrators and their role assignments in Firebase <code>/adminUsers</code></span>
+          </div>
+          <button id="open-add-admin-modal-btn" class="btn btn-primary btn-sm">
+            + Add Admin User
+          </button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Administrator</th>
+                <th>Email Address</th>
+                <th>Assigned Role</th>
+                <th>Status</th>
+                <th>Created / Added</th>
+                <th style="text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admins-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">
+                  Loading administrator accounts...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Roles & Permissions Definitions Card -->
+      <div class="admin-card" style="margin-top: 24px;">
+        <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <h3 style="font-size: 18px; margin-bottom: 2px;">Configured System Roles</h3>
+            <span style="font-size: 13px; color: var(--color-text-muted);">Available roles stored in Firestore <code>/roles</code> for assignment</span>
+          </div>
+          <button id="open-add-role-modal-btn" class="btn btn-secondary btn-sm">
+            + Create New Role
+          </button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Role Identifier</th>
+                <th>Role Display Name</th>
+                <th>Permissions</th>
+                <th>Description</th>
+                <th style="text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="roles-list-tbody">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 24px;">
+                  Loading configured roles...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Admin User Modal -->
+  <div id="admin-user-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 520px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">
+        <h3 id="admin-user-modal-title" style="margin: 0; font-size: 18px;">Add Admin User</h3>
+        <button id="close-admin-user-modal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+      <form id="admin-user-form">
+        <input type="hidden" id="admin-doc-id">
+        
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Full Name *</label>
+          <input type="text" id="admin-name-input" required placeholder="e.g. Rajesh Kumar" class="search-input" style="border-radius: var(--radius-md); width: 100%;">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Email Address *</label>
+          <input type="email" id="admin-email-input" required placeholder="e.g. manager@nextbuy77.com" class="search-input" style="border-radius: var(--radius-md); width: 100%;">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Select Role *</label>
+          <select id="admin-role-select" required class="search-input" style="border-radius: var(--radius-md); width: 100%; padding: 8px;">
+            <option value="">-- Choose an administrative role --</option>
+            <!-- Populated dynamically from Firebase roles collection -->
+          </select>
+          <span style="font-size: 11px; color: var(--color-text-muted);">Roles define access levels across products, orders, payments, and settings.</span>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Account Status</label>
+          <select id="admin-status-select" class="search-input" style="border-radius: var(--radius-md); width: 100%; padding: 8px;">
+            <option value="active">Active (Access Granted)</option>
+            <option value="suspended">Suspended (Access Temporarily Revoked)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Department / Notes (Optional)</label>
+          <input type="text" id="admin-notes-input" placeholder="e.g. Inventory Management, Orders Dispatch" class="search-input" style="border-radius: var(--radius-md); width: 100%;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="cancel-admin-user-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Admin User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create New Role Modal -->
+  <div id="role-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 480px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">
+        <h3 id="role-modal-title" style="margin: 0; font-size: 18px;">Create System Role</h3>
+        <button id="close-role-modal" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+      <form id="role-form">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Role Identifier (ID) *</label>
+          <input type="text" id="role-id-input" required placeholder="e.g. seller, support, finance" class="search-input" style="border-radius: var(--radius-md); width: 100%;">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Display Name *</label>
+          <input type="text" id="role-name-input" required placeholder="e.g. Seller / Merchant" class="search-input" style="border-radius: var(--radius-md); width: 100%;">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Permissions *</label>
+          <input type="text" id="role-perms-input" required placeholder="e.g. PRODUCTS_MANAGE, ORDERS_VIEW, or ALL" class="search-input" style="border-radius: var(--radius-md); width: 100%;" value="PRODUCTS_MANAGE, ORDERS_VIEW">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Description</label>
+          <input type="text" id="role-desc-input" placeholder="e.g. Can manage seller products and process shipping" class="search-input" style="border-radius: var(--radius-md); width: 100%;">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="cancel-role-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Role</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { adminAuth } from './js/admin-auth.js';
+    import { db } from '../js/firebase-config.js';
+    import { 
+      collection, 
+      doc, 
+      getDocs, 
+      setDoc, 
+      deleteDoc, 
+      updateDoc, 
+      serverTimestamp, 
+      onSnapshot, 
+      query, 
+      orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { formatDateIST, showToast, escapeHtml } from '../js/utils.js';
+
+    let availableRoles = [];
+    let allAdmins = [];
+
+    // Default roles to ensure the dropdown always has options even before Firebase is seeded
+    const DEFAULT_ROLES = [
+      { id: 'super_admin', name: 'Super Admin', permissions: 'ALL', description: 'Full system control, payments approval, settings' },
+      { id: 'seller', name: 'Seller / Merchant', permissions: 'PRODUCTS_MANAGE, INVENTORY_MANAGE', description: 'Can add & manage own seller products under seller reference rules' },
+      { id: 'orders_manager', name: 'Orders & Shipping Manager', permissions: 'ORDERS_MANAGE, SHIPPING_DISPATCH', description: 'Can fulfill orders and enter courier tracking details' },
+      { id: 'payments_auditor', name: 'Payments Auditor', permissions: 'PAYMENTS_VERIFY, REFUNDS_PROCESS', description: 'Can verify UTR numbers, approve or reject manual payments' },
+      { id: 'support_agent', name: 'Customer Support Representative', permissions: 'USERS_VIEW, ORDERS_VIEW', description: 'Can view customer records and look up order statuses' }
+    ];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      adminAuth.protectPage();
+
+      document.getElementById('admin-signout-btn').addEventListener('click', () => adminAuth.logout());
+
+      // Listen for roles in real-time from Firestore /roles
+      listenToRoles();
+
+      // Listen for admin users in real-time from Firestore /adminUsers
+      listenToAdmins();
+
+      // Admin Modal Triggers
+      document.getElementById('open-add-admin-modal-btn').addEventListener('click', () => {
+        openAdminModal();
+      });
+
+      document.getElementById('close-admin-user-modal').addEventListener('click', () => {
+        document.getElementById('admin-user-modal').style.display = 'none';
+      });
+
+      document.getElementById('cancel-admin-user-btn').addEventListener('click', () => {
+        document.getElementById('admin-user-modal').style.display = 'none';
+      });
+
+      // Role Modal Triggers
+      document.getElementById('open-add-role-modal-btn').addEventListener('click', () => {
+        document.getElementById('role-form').reset();
+        document.getElementById('role-modal').style.display = 'flex';
+      });
+
+      document.getElementById('close-role-modal').addEventListener('click', () => {
+        document.getElementById('role-modal').style.display = 'none';
+      });
+
+      document.getElementById('cancel-role-btn').addEventListener('click', () => {
+        document.getElementById('role-modal').style.display = 'none';
+      });
+
+      // Submit Admin Form
+      document.getElementById('admin-user-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const docId = document.getElementById('admin-doc-id').value.trim();
+        const displayName = document.getElementById('admin-name-input').value.trim();
+        const email = document.getElementById('admin-email-input').value.trim().toLowerCase();
+        const role = document.getElementById('admin-role-select').value;
+        const status = document.getElementById('admin-status-select').value;
+        const notes = document.getElementById('admin-notes-input').value.trim();
+
+        if (!email || !role) {
+          showToast('Please specify a valid email and select an administrative role.', 'warning');
+          return;
+        }
+
+        try {
+          // Use existing doc ID or sanitize email as doc ID
+          const targetId = docId || email.replace(/[^a-zA-Z0-9_-]/g, '_');
+          const adminRef = doc(db, 'adminUsers', targetId);
+
+          const roleObj = availableRoles.find(r => r.name === role || r.id === role);
+          const permissions = roleObj && roleObj.permissions ? (Array.isArray(roleObj.permissions) ? roleObj.permissions : roleObj.permissions.split(',').map(p => p.trim())) : ['DASHBOARD_VIEW'];
+
+          await setDoc(adminRef, {
+            displayName,
+            email,
+            role,
+            status,
+            notes,
+            permissions,
+            updatedAt: serverTimestamp(),
+            ...(docId ? {} : { createdAt: serverTimestamp() })
+          }, { merge: true });
+
+          showToast(`Admin user "${displayName}" with role "${role}" saved successfully!`, 'success');
+          document.getElementById('admin-user-modal').style.display = 'none';
+        } catch (err) {
+          console.error('Error saving admin user:', err);
+          showToast('Failed to save admin user: ' + err.message, 'danger');
+        }
+      });
+
+      // Submit Role Form
+      document.getElementById('role-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('role-id-input').value.trim().toLowerCase().replace(/\s+/g, '_');
+        const name = document.getElementById('role-name-input').value.trim();
+        const permissions = document.getElementById('role-perms-input').value.trim();
+        const description = document.getElementById('role-desc-input').value.trim();
+
+        try {
+          await setDoc(doc(db, 'roles', id), {
+            id,
+            name,
+            permissions,
+            description,
+            updatedAt: serverTimestamp()
+          });
+
+          showToast(`Role "${name}" saved to Firebase!`, 'success');
+          document.getElementById('role-modal').style.display = 'none';
+        } catch (err) {
+          console.error('Error saving role:', err);
+          showToast('Failed to save role: ' + err.message, 'danger');
+        }
+      });
+    });
+
+    /**
+     * Real-time listener for roles collection in Firestore
+     */
+    function listenToRoles() {
+      const roleSelect = document.getElementById('admin-role-select');
+      const rolesTbody = document.getElementById('roles-list-tbody');
+
+      onSnapshot(collection(db, 'roles'), (snap) => {
+        const firestoreRoles = [];
+        snap.forEach(d => {
+          firestoreRoles.push({ id: d.id, ...d.data() });
+        });
+
+        // Combine Firestore roles with defaults
+        availableRoles = [...DEFAULT_ROLES];
+        firestoreRoles.forEach(fr => {
+          const existingIdx = availableRoles.findIndex(r => r.id === fr.id || r.name.toLowerCase() === (fr.name || '').toLowerCase());
+          if (existingIdx >= 0) {
+            availableRoles[existingIdx] = fr;
+          } else {
+            availableRoles.push(fr);
+          }
+        });
+
+        // Populate Role Dropdown
+        let optionsHtml = '<option value="">-- Choose an administrative role --</option>';
+        availableRoles.forEach(r => {
+          const roleName = r.name || r.id;
+          optionsHtml += `<option value="${escapeHtml(roleName)}">${escapeHtml(roleName)} (${escapeHtml(r.description || r.permissions || 'Standard')})</option>`;
+        });
+        roleSelect.innerHTML = optionsHtml;
+
+        // Render Roles Table
+        let tableHtml = '';
+        availableRoles.forEach(r => {
+          const permsStr = Array.isArray(r.permissions) ? r.permissions.join(', ') : (r.permissions || 'ALL');
+          tableHtml += `
+            <tr>
+              <td><code>${escapeHtml(r.id)}</code></td>
+              <td><strong>${escapeHtml(r.name || r.id)}</strong></td>
+              <td><span style="font-size: 11px; background: #EEF2F6; padding: 2px 6px; border-radius: 4px;">${escapeHtml(permsStr)}</span></td>
+              <td style="font-size: 12px; color: var(--color-text-muted);">${escapeHtml(r.description || 'System Role')}</td>
+              <td style="text-align: center;">
+                <button class="btn btn-sm btn-secondary edit-role-row-btn" data-id="${escapeHtml(r.id)}" data-name="${escapeHtml(r.name || '')}" data-perms="${escapeHtml(permsStr)}" data-desc="${escapeHtml(r.description || '')}" style="padding: 2px 8px; font-size: 11px;">Edit</button>
+              </td>
+            </tr>
+          `;
+        });
+        rolesTbody.innerHTML = tableHtml;
+
+        rolesTbody.querySelectorAll('.edit-role-row-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const b = e.currentTarget;
+            document.getElementById('role-id-input').value = b.getAttribute('data-id');
+            document.getElementById('role-name-input').value = b.getAttribute('data-name');
+            document.getElementById('role-perms-input').value = b.getAttribute('data-perms');
+            document.getElementById('role-desc-input').value = b.getAttribute('data-desc');
+            document.getElementById('role-modal-title').textContent = 'Edit System Role';
+            document.getElementById('role-modal').style.display = 'flex';
+          });
+        });
+      }, (err) => {
+        console.warn('Real-time roles notice:', err);
+      });
+    }
+
+    /**
+     * Real-time listener for adminUsers collection in Firestore
+     */
+    function listenToAdmins() {
+      const tbody = document.getElementById('admins-tbody');
+
+      onSnapshot(collection(db, 'adminUsers'), (snap) => {
+        allAdmins = [];
+        snap.forEach(d => {
+          allAdmins.push({ id: d.id, ...d.data() });
+        });
+
+        // Ensure super admin arghadeepg2006@gmail.com is listed even if document was not yet queried
+        const superAdminEmail = 'arghadeepg2006@gmail.com';
+        const hasSuperAdmin = allAdmins.some(a => (a.email || '').toLowerCase() === superAdminEmail);
+        if (!hasSuperAdmin) {
+          allAdmins.unshift({
+            id: 'super_admin_root',
+            displayName: 'Arghadeep (Owner)',
+            email: superAdminEmail,
+            role: 'Super Admin',
+            status: 'active',
+            notes: 'Primary Store Super Administrator',
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        renderAdminsTable();
+      }, (err) => {
+        console.error('Real-time adminUsers error:', err);
+        // Fallback display
+        allAdmins = [{
+          id: 'super_admin_root',
+          displayName: 'Arghadeep (Owner)',
+          email: 'arghadeepg2006@gmail.com',
+          role: 'Super Admin',
+          status: 'active',
+          notes: 'Primary Store Super Administrator',
+          createdAt: new Date().toISOString()
+        }];
+        renderAdminsTable();
+      });
+    }
+
+    function renderAdminsTable() {
+      const tbody = document.getElementById('admins-tbody');
+      if (allAdmins.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 32px;">No admin accounts configured.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      allAdmins.forEach(adm => {
+        const isSuperAdmin = (adm.email || '').toLowerCase() === 'arghadeepg2006@gmail.com';
+        const statusBadge = adm.status === 'active' 
+          ? `<span class="status-badge badge-success" style="font-size: 11px;">Active</span>` 
+          : `<span class="status-badge badge-danger" style="font-size: 11px;">Suspended</span>`;
+
+        let roleBadgeColor = '#6A1B9A';
+        if (adm.role === 'Super Admin') roleBadgeColor = '#B71C1C';
+        else if (adm.role?.includes('Seller')) roleBadgeColor = '#1565C0';
+        else if (adm.role?.includes('Orders')) roleBadgeColor = '#00695C';
+        else if (adm.role?.includes('Payments')) roleBadgeColor = '#E65100';
+
+        const roleBadge = `<span style="background: ${roleBadgeColor}15; color: ${roleBadgeColor}; border: 1px solid ${roleBadgeColor}40; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">${escapeHtml(adm.role || 'Admin')}</span>`;
+
+        const createdDate = adm.createdAt ? (typeof adm.createdAt.toDate === 'function' ? formatDateIST(adm.createdAt.toDate()) : formatDateIST(adm.createdAt)) : 'System Bootstrap';
+
+        html += `
+          <tr data-id="${adm.id}">
+            <td>
+              <strong>${escapeHtml(adm.displayName || 'Admin User')}</strong>
+              ${adm.notes ? `<div style="font-size: 11px; color: var(--color-text-muted);">${escapeHtml(adm.notes)}</div>` : ''}
+            </td>
+            <td>
+              <code>${escapeHtml(adm.email || '')}</code>
+            </td>
+            <td>${roleBadge}</td>
+            <td>${statusBadge}</td>
+            <td style="font-size: 12px; color: var(--color-text-muted);">${createdDate}</td>
+            <td style="text-align: center;">
+              <div style="display: flex; gap: 6px; justify-content: center;">
+                <button class="btn btn-sm btn-secondary edit-admin-btn" data-id="${adm.id}" style="padding: 3px 8px; font-size: 11px;">
+                  ✏️ Edit Role
+                </button>
+                ${!isSuperAdmin ? `
+                  <button class="btn btn-sm btn-secondary toggle-status-btn" data-id="${adm.id}" data-status="${adm.status || 'active'}" style="padding: 3px 8px; font-size: 11px;">
+                    ${adm.status === 'active' ? 'Suspend' : 'Activate'}
+                  </button>
+                  <button class="btn btn-sm btn-secondary delete-admin-btn" data-id="${adm.id}" style="color: var(--color-danger); padding: 3px 8px; font-size: 11px;">
+                    🗑️ Remove
+                  </button>
+                ` : `
+                  <span style="font-size: 11px; color: var(--color-text-muted); padding: 4px;">Primary Owner</span>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+
+      // Edit Button
+      tbody.querySelectorAll('.edit-admin-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const adm = allAdmins.find(a => a.id === id);
+          if (adm) openAdminModal(adm);
+        });
+      });
+
+      // Toggle Status Button
+      tbody.querySelectorAll('.toggle-status-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const currentStatus = e.currentTarget.getAttribute('data-status');
+          const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+
+          try {
+            await updateDoc(doc(db, 'adminUsers', id), {
+              status: newStatus,
+              updatedAt: serverTimestamp()
+            });
+            showToast(`Admin account ${newStatus === 'active' ? 'activated' : 'suspended'}.`, 'info');
+          } catch (err) {
+            showToast('Failed to update status: ' + err.message, 'danger');
+          }
+        });
+      });
+
+      // Delete Button
+      tbody.querySelectorAll('.delete-admin-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const adm = allAdmins.find(a => a.id === id);
+          if (!adm) return;
+
+          if (confirm(`Are you sure you want to remove administrator privileges for ${adm.displayName || adm.email}?`)) {
+            try {
+              await deleteDoc(doc(db, 'adminUsers', id));
+              showToast('Admin user removed successfully.', 'info');
+            } catch (err) {
+              showToast('Failed to remove admin user: ' + err.message, 'danger');
+            }
+          }
+        });
+      });
+    }
+
+    function openAdminModal(adminData = null) {
+      const form = document.getElementById('admin-user-form');
+      form.reset();
+
+      if (adminData) {
+        document.getElementById('admin-user-modal-title').textContent = 'Edit Administrator & Role';
+        document.getElementById('admin-doc-id').value = adminData.id || '';
+        document.getElementById('admin-name-input').value = adminData.displayName || '';
+        document.getElementById('admin-email-input').value = adminData.email || '';
+        document.getElementById('admin-email-input').readOnly = true; // Email is the identifier
+        document.getElementById('admin-role-select').value = adminData.role || '';
+        document.getElementById('admin-status-select').value = adminData.status || 'active';
+        document.getElementById('admin-notes-input').value = adminData.notes || '';
+      } else {
+        document.getElementById('admin-user-modal-title').textContent = 'Add Admin User';
+        document.getElementById('admin-doc-id').value = '';
+        document.getElementById('admin-email-input').readOnly = false;
+        document.getElementById('admin-status-select').value = 'active';
+      }
+
+      document.getElementById('admin-user-modal').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
